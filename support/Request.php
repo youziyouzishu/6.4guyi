@@ -14,6 +14,9 @@
 
 namespace support;
 
+use app\admin\model\User;
+use Tinywan\Jwt\Exception\JwtRefreshTokenExpiredException;
+
 /**
  * Class Request
  * @package support
@@ -43,6 +46,15 @@ class Request extends \Webman\Http\Request
         $newData = $rawData; // 复制原始数据
         $newData[$method] = array_merge($newData[$method] ?? [], $data); // 合并特定方法的数据
         $this->data = $newData; // 更新对象数据
+    }
+
+    public function user()
+    {
+        $user = User::find($this->user_id);
+        if (!$user) {
+            throw new JwtRefreshTokenExpiredException();
+        }
+        return $user;
     }
 
 }

@@ -13,21 +13,28 @@
 
             <div class="mainBox">
                 <div class="main-container mr-5">
-                    
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">限制vip</label>
+                        <div class="layui-input-block">
+                            <div id="vip_level" name="vip_level" value=""></div>
+                        </div>
+                    </div>
+
                     <div class="layui-form-item">
                         <label class="layui-form-label required">一级分类</label>
                         <div class="layui-input-block">
-                            <input type="number" name="class_first_id" value="" required lay-verify="required" class="layui-input">
+                            <div id="class_first_id" name="class_first_id" value=""></div>
                         </div>
                     </div>
                     
                     <div class="layui-form-item">
                         <label class="layui-form-label required">二级分类</label>
                         <div class="layui-input-block">
-                            <input type="number" name="class_sec_id" value="" required lay-verify="required" class="layui-input">
+                            <div id="class_sec_id" name="class_sec_id" value=""></div>
                         </div>
                     </div>
-                    
+
                     <div class="layui-form-item">
                         <label class="layui-form-label required">头像</label>
                         <div class="layui-input-block">
@@ -48,11 +55,18 @@
                             <input type="text" name="name" value="" required lay-verify="required" class="layui-input">
                         </div>
                     </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">单次诊费</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="price" value="" required lay-verify="required" class="layui-input">
+                        </div>
+                    </div>
                     
                     <div class="layui-form-item">
                         <label class="layui-form-label required">标签</label>
                         <div class="layui-input-block">
-                            <input type="text" name="tags" value="" required lay-verify="required" class="layui-input">
+                            <input type="text" name="tags" value="" placeholder="多个使用,分隔" required lay-verify="required" class="layui-input">
                         </div>
                     </div>
                     
@@ -76,13 +90,21 @@
                             <textarea name="resume" class="layui-textarea"></textarea>
                         </div>
                     </div>
-                    
+
                     <div class="layui-form-item">
-                        <label class="layui-form-label required">状态:1=正常,2=隐藏</label>
+                        <label class="layui-form-label required">用户名</label>
                         <div class="layui-input-block">
-                            <div name="status" id="status" required value="" ></div>
+                            <input type="text" name="username" value="" required lay-verify="required" class="layui-input">
                         </div>
                     </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">密码</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="password" value="" required lay-verify="required" class="layui-input">
+                        </div>
+                    </div>
+
                     
                     <div class="layui-form-item">
                         <label class="layui-form-label">权重</label>
@@ -117,7 +139,74 @@
             
             // 相关接口
             const INSERT_API = "/admin/doctor/insert";
-            
+
+            layui.use(["jquery", "xmSelect", "popup"], function () {
+                var $ = layui.$;
+                // 公共函数：渲染 xmSelect 下拉框
+                function renderXmSelect(el, url, callback) {
+                    $.ajax({
+                        url: url,
+                        dataType: "json",
+                        success: function (res) {
+                            if (res.code) {
+                                return layui.popup.failure(res.msg);
+                            }
+
+                            let value = $(el).attr("value");
+                            let initValue = value ? value.split(",") : [];
+
+                            let instance = xmSelect.render({
+                                el: el,
+                                name: $(el).attr("name"),
+                                initValue: initValue,
+                                tips: "无",
+                                toolbar: { show: true, list: ["CLEAR"] },
+                                data: res.data,
+                                value: "0",
+                                model: { "icon": "hidden", "label": { "type": "text" } },
+                                clickClose: true,
+                                radio: true,
+                                tree: { show: true, "strict": false, "clickCheck": true, "clickExpand": false },
+                                // ✅ 在这里定义 on 事件
+                                on: function (data) {
+                                    // arr: 当前多选已选中的数据
+                                    var arr = data.arr;
+                                    // change: 此次选择变化的数据, 数组
+                                    var change = data.change;
+                                    // isAdd: 此次操作是新增还是删除
+                                    var isAdd = data.isAdd;
+
+                                    // 如果是第一个下拉框，并且有回调函数，则执行联动逻辑
+                                    if (typeof callback === "function") {
+                                        callback(arr, change, isAdd, instance);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // 渲染一级分类并实现联动
+                renderXmSelect("#class_first_id", "/admin/doctor-class/select?format=tree&level=1", function (arr) {
+                    if (arr.length > 0) {
+                        let selectedId = arr[0].value; // 获取选中的节点 ID
+                        let url = "/admin/doctor-class/select?format=tree&pid=" + selectedId;
+                        // 重新渲染二级分类
+                        renderXmSelect("#class_sec_id", url);
+                    } else {
+                        // 如果未选择一级分类，则清空二级分类
+                        $("#class_sec_id").html("");
+                    }
+                });
+
+                // 初始加载二级分类（可选）
+                renderXmSelect("#class_sec_id", "/admin/doctor-class/select?format=tree&level=2");
+
+                renderXmSelect("#vip_level", "/admin/vip/select?format=tree");
+            });
+
+
+
             // 字段 头像 avatar
             layui.use(["upload", "layer"], function() {
                 let input = layui.$("#avatar").prev();
@@ -147,23 +236,7 @@
                     }
                 });
             });
-            
-            // 字段 状态:1=正常,2=隐藏 status
-            layui.use(["jquery", "xmSelect"], function() {
-                let value = layui.$("#status").attr("value");
-                let initValue = value ? value.split(",") : [];
-                layui.xmSelect.render({
-                    el: "#status",
-                    name: "status",
-                    filterable: true,
-                    initValue: initValue,
-                    data: [{"value":"1","name":"正常"},{"value":"2","name":"隐藏"}],
-                    model: {"icon":"hidden","label":{"type":"text"}},
-                    clickClose: true,
-                    radio: true,
-                    layVerify: "required",
-                })
-            });
+
             
             //提交事件
             layui.use(["form", "popup"], function () {

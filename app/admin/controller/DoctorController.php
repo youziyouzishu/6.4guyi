@@ -2,6 +2,9 @@
 
 namespace app\admin\controller;
 
+use app\admin\model\Admin;
+use plugin\admin\app\common\Util;
+use plugin\admin\app\model\AdminRole;
 use support\Request;
 use support\Response;
 use app\admin\model\Doctor;
@@ -9,11 +12,11 @@ use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
 
 /**
- * 医师管理 
+ * 医师管理
  */
 class DoctorController extends Crud
 {
-    
+
     /**
      * @var Doctor
      */
@@ -27,7 +30,7 @@ class DoctorController extends Crud
     {
         $this->model = new Doctor;
     }
-    
+
     /**
      * 浏览
      * @return Response
@@ -35,6 +38,19 @@ class DoctorController extends Crud
     public function index(): Response
     {
         return view('doctor/index');
+    }
+
+    /**
+     * 查询
+     * @param Request $request
+     * @return Response
+     * @throws BusinessException
+     */
+    public function select(Request $request): Response
+    {
+        [$where, $format, $limit, $field, $order] = $this->selectInput($request);
+        $query = $this->doSelect($where, $field, $order)->with(['classFirst', 'classSecond','vip']);
+        return $this->doFormat($query, $format, $limit);
     }
 
     /**
@@ -46,6 +62,28 @@ class DoctorController extends Crud
     public function insert(Request $request): Response
     {
         if ($request->method() === 'POST') {
+            $username = $request->post('username');
+            $password = $request->post('password');
+            $avatar = $request->post('avatar');
+            $name = $request->post('name');
+            $admin = Admin::where('username', $username)->first();
+            if ($admin) {
+                return $this->fail('用户名重复');
+            }
+            $admin = Admin::create([
+                'avatar' => $avatar,
+                'username' => $username,
+                'password' => Util::passwordHash($password),
+                'nickname' => $name,
+            ]);
+
+            $admin_role = new AdminRole;
+            $admin_role->admin_id = $admin->id;
+            $admin_role->role_id = 3;
+            $admin_role->save();
+            $request->setParams('post',[
+                'admin_id' => $admin->id
+            ]);
             return parent::insert($request);
         }
         return view('doctor/insert');
@@ -56,7 +94,7 @@ class DoctorController extends Crud
      * @param Request $request
      * @return Response
      * @throws BusinessException
-    */
+     */
     public function update(Request $request): Response
     {
         if ($request->method() === 'POST') {

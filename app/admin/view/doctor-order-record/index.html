@@ -22,9 +22,9 @@
                     </div>
                     
                     <div class="layui-form-item">
-                        <label class="layui-form-label">状态</label>
+                        <label class="layui-form-label">体质类型</label>
                         <div class="layui-input-block">
-                            <div name="status" id="status" value="" ></div>
+                            <div name="constitution_types" id="constitution_types" value="" ></div>
                         </div>
                     </div>
                     
@@ -65,18 +65,18 @@
 
         <!-- 表格顶部工具栏 -->
         <script type="text/html" id="table-toolbar">
-            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="admin.doctor.insert">
+            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="admin.doctororderrecord.insert">
                 <i class="layui-icon layui-icon-add-1"></i>新增
             </button>
-            <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="admin.doctor.delete">
+            <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="admin.doctororderrecord.delete">
                 <i class="layui-icon layui-icon-delete"></i>删除
             </button>
         </script>
 
         <!-- 表格行工具栏 -->
         <script type="text/html" id="table-bar">
-            <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="admin.doctor.update">编辑</button>
-            <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="admin.doctor.delete">删除</button>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="admin.doctororderrecord.update">编辑</button>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="admin.doctororderrecord.delete">删除</button>
         </script>
 
         <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
@@ -88,22 +88,22 @@
 
             // 相关常量
             const PRIMARY_KEY = "id";
-            const SELECT_API = "/admin/doctor/select";
-            const UPDATE_API = "/admin/doctor/update";
-            const DELETE_API = "/admin/doctor/delete";
-            const INSERT_URL = "/admin/doctor/insert";
-            const UPDATE_URL = "/admin/doctor/update";
+            const SELECT_API = "/admin/doctor-order-record/select";
+            const UPDATE_API = "/admin/doctor-order-record/update";
+            const DELETE_API = "/admin/doctor-order-record/delete";
+            const INSERT_URL = "/admin/doctor-order-record/insert";
+            const UPDATE_URL = "/admin/doctor-order-record/update";
             
-            // 字段 状态:1=正常,2=隐藏 status
+            // 字段 体质类型 constitution_types
             layui.use(["jquery", "xmSelect"], function() {
-                let value = layui.$("#status").attr("value");
+                let value = layui.$("#constitution_types").attr("value");
                 let initValue = value ? value.split(",") : [];
                 layui.xmSelect.render({
-                    el: "#status",
-                    name: "status",
+                    el: "#constitution_types",
+                    name: "constitution_types",
                     filterable: true,
                     initValue: initValue,
-                    data: [{"value":"1","name":"正常"},{"value":"2","name":"隐藏"}],
+                    data: [{"value":"平和质","name":"平和质"},{"value":"气虚质","name":"气虚质"},{"value":"阳虚质","name":"阳虚质"},{"value":"阴虚质","name":"阴虚质"},{"value":"痰湿质","name":"痰湿质"},{"value":"湿热质","name":"湿热质"},{"value":"血瘀质","name":"血瘀质"},{"value":"气郁质","name":"气郁质"},{"value":"特禀质","name":"特禀质"}],
                     model: {"icon":"hidden","label":{"type":"text"}},
                     clickClose: true,
                     radio: true,
@@ -137,43 +137,52 @@
 						field: "id",
 						sort: true,
 					},{
-                        title: "限制vip",align: "center",
-                        field: "vip_level",
-                        templet: function(d){
-                            return d.vip?d.vip.name:'';
-                        }
-                    },{
-						title: "一级分类",align: "center",
-						field: "class_first_id",
-                        templet: function(d){
-                            return d.class_first?d.class_first.name:'';
-                        }
+						title: "用户",align: "center",
+						field: "user_id",
 					},{
-						title: "二级分类",align: "center",
-						field: "class_sec_id",
-                        templet: function(d){
-                            return d.class_second?d.class_second.name:'';
-                        }
+						title: "订单",align: "center",
+						field: "order_id",
 					},{
-						title: "头像",align: "center",
-						field: "avatar",
+						title: "神色",align: "center",
+						field: "shen_se",
+					},{
+						title: "舌质",align: "center",
+						field: "she_zhi",
+					},{
+						title: "舌苔",align: "center",
+						field: "she_tai",
+					},{
+						title: "体型",align: "center",
+						field: "ti_xing",
+					},{
+						title: "气味",align: "center",
+						field: "qi_wei",
+					},{
+						title: "汗",align: "center",
+						field: "han",
+					},{
+						title: "饮食",align: "center",
+						field: "yin_shi",
+					},{
+						title: "睡眠",align: "center",
+						field: "shui_mian",
+					},{
+						title: "二便",align: "center",
+						field: "er_bian",
+					},{
+						title: "月经",align: "center",
+						field: "yue_jing",
+					},{
+						title: "脉象",align: "center",
+						field: "mai_xiang",
+					},{
+						title: "局部触诊",align: "center",
+						field: "bu_chu_zhen",
+					},{
+						title: "体质类型",align: "center",
+						field: "constitution_types",
 						templet: function (d) {
-							return '<img src="'+encodeURI(d['avatar'])+'" style="max-width:32px;max-height:32px;" alt="" />'
-						}
-					},{
-						title: "名称",align: "center",
-						field: "name",
-					},{
-						title: "标签",align: "center",
-						field: "tags",
-					},{
-						title: "职称",align: "center",
-						field: "level",
-					},{
-						title: "状态",align: "center",
-						field: "status",
-						templet: function (d) {
-							let field = "status";
+							let field = "constitution_types";
 							if (typeof d[field] == "undefined") return "";
 							let items = [];
 							layui.each((d[field] + "").split(","), function (k , v) {
@@ -182,11 +191,47 @@
 							return util.escape(items.join(","));
 						}
 					},{
-						title: "销量",align: "center",
-						field: "sales",
+						title: "辨证要点",align: "center",
+						field: "bianzheng_keypoint",
 					},{
-						title: "好评率",align: "center",
-						field: "assess_rate",
+						title: "主要症状",align: "center",
+						field: "main_symptom",
+					},{
+						title: "伴随症状",align: "center",
+						field: "additional_symptoms",
+					},{
+						title: "加重缓解因素",align: "center",
+						field: "aggravating_relieving_factors",
+					},{
+						title: "诊断结果",align: "center",
+						field: "diagnosis_result",
+					},{
+						title: "煎服法",align: "center",
+						field: "decoction_method",
+					},{
+						title: "服药注意事项",align: "center",
+						field: "prescription_notes",
+					},{
+						title: "理疗方案内容",align: "center",
+						field: "therapy_plan",
+					},{
+						title: "理疗注意事项",align: "center",
+						field: "therapy_notes",
+					},{
+						title: "治疗反应预警",align: "center",
+						field: "warning_reaction",
+					},{
+						title: "建议复诊天数",align: "center",
+						field: "followup_days",
+					},{
+						title: "紧急情况处理说明",align: "center",
+						field: "emergency_guidelines",
+					},{
+						title: "诊疗医师姓名",align: "center",
+						field: "doctor_name",
+					},{
+						title: "助理医师姓名",align: "center",
+						field: "assistant_name",
 					},{
 						title: "创建时间",align: "center",
 						field: "created_at",
@@ -195,10 +240,6 @@
 						title: "更新时间",align: "center",
 						field: "updated_at",
 					},{
-                        title: "权重",align: "center",
-                        field: "weigh",
-                        sort: true,
-                    },      {
 						title: "操作",
 						toolbar: "#table-bar",
 						align: "center",
@@ -216,7 +257,6 @@
 				    skin: "line",
 				    size: "lg",
 				    toolbar: "#table-toolbar",
-                    cellMinWidth: 150,
 				    autoSort: false,
 				    defaultToolbar: [{
 				        title: "刷新",
@@ -230,7 +270,7 @@
 				
 				// 获取表格中下拉或树形组件数据
 				let apiResults = {};
-				apiResults["status"] = {"1":"正常","2":"隐藏"};
+				apiResults["constitution_types"] = {"平和质":"平和质","气虚质":"气虚质","阳虚质":"阳虚质","阴虚质":"阴虚质","痰湿质":"痰湿质","湿热质":"湿热质","血瘀质":"血瘀质","气郁质":"气郁质","特禀质":"特禀质"};
                 // 编辑或删除行事件
                 table.on("tool(data-table)", function(obj) {
                     if (obj.event === "remove") {
@@ -298,7 +338,7 @@
                         title: "新增",
                         shade: 0.1,
                         maxmin: true,
-                        area: [common.isModile()?"100%":"700px", common.isModile()?"100%":"650px"],
+                        area: [common.isModile()?"100%":"500px", common.isModile()?"100%":"450px"],
                         content: INSERT_URL
                     });
                 }

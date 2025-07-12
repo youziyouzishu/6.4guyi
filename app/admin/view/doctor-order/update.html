@@ -14,42 +14,23 @@
 
             <div class="mainBox">
                 <div class="main-container mr-5">
-                    
+
+
                     <div class="layui-form-item">
-                        <label class="layui-form-label">上级</label>
+                        <label class="layui-form-label">订单状态</label>
                         <div class="layui-input-block">
-                            <div id="pid" name="pid" value=""></div>
+                            <div name="status" id="status" value="" ></div>
                         </div>
                     </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label required">名称</label>
+
+                    <div class="layui-form-item schedule layui-hide">
+                        <label class="layui-form-label">预约时间</label>
                         <div class="layui-input-block">
-                            <input type="text" name="name" value="" required lay-verify="required" class="layui-input">
+                            <div name="schedule" id="schedule" value="" ></div>
                         </div>
                     </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">图标</label>
-                        <div class="layui-input-block">
-                            <img class="img-3" src=""/>
-                            <input type="text" style="display:none" name="icon" value="" />
-                            <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="icon"  permission="app.admin.upload.image">
-                                <i class="layui-icon layui-icon-upload"></i>上传图片
-                            </button>
-                            <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="attachment-choose-icon"  permission="app.admin.upload.attachment">
-                                <i class="layui-icon layui-icon-align-left"></i>选择图片
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">权重</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="weigh" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
+
+
                 </div>
             </div>
 
@@ -75,8 +56,8 @@
 
             // 相关接口
             const PRIMARY_KEY = "id";
-            const SELECT_API = "/admin/doctor-class/select" + location.search;
-            const UPDATE_API = "/admin/doctor-class/update";
+            const SELECT_API = "/admin/doctor-order/select" + location.search;
+            const UPDATE_API = "/admin/doctor-order/update";
             // 获取数据库记录
             layui.use(["form", "util", "popup"], function () {
                 let $ = layui.$;
@@ -114,20 +95,88 @@
                             }
                         });
 
+                        
+                        // 字段 订单状态:0=待付款,1=待确认,2=已预约,3=已完成,4=过号未诊,5=取消 status
+                        layui.use(["jquery", "xmSelect"], function() {
+                            let value = layui.$("#status").attr("value");
+                            let initValue = value ? value.split(",") : [];
+                            let data = [{"value":"0","name":"待付款"},{"value":"1","name":"待确认"},{"value":"2","name":"已预约"},{"value":"3","name":"已完成"},{"value":"4","name":"过号未诊"},{"value":"5","name":"取消"}];
+                            if (value === '0'){
+                                data = [{"value":"0","name":"待付款"}];
+                            }
+                            if (value === '1'){
+                                data = [{"value":"1","name":"待确认"},{"value":"2","name":"确认"}];
+                            }
+                            if (value === '2'){
+                                data = [{"value":"2","name":"已预约"},{"value":"3","name":"完成"}];
+                            }
+                            if (value === '3'){
+                                data = [{"value":"3","name":"已完成"}];
+                            }
+                            if (value === '4'){
+                                data = [{"value":"4","name":"过号未诊"}];
+                            }
+                            if (value === '5'){
+                                data = [{"value":"4","name":"取消"}];
+                            }
+                            let statusSelect = layui.xmSelect.render({
+                                el: "#status",
+                                name: "status",
+                                filterable: true,
+                                initValue: initValue,
+                                data: data,
+                                model: {"icon":"hidden","label":{"type":"text"}},
+                                clickClose: true,
+                                radio: true,
+                                on: function (data) {
+                                    // arr: 当前多选已选中的数据
+                                    var arr = data.arr;
+                                    // change: 此次选择变化的数据, 数组
+                                    var change = data.change;
+                                    // isAdd: 此次操作是新增还是删除
+                                    var isAdd = data.isAdd;
+                                    if (arr.length > 0) {
+                                        if (arr[0].value === "2" && res.data[0]['schedule_id'] ===  null){
+                                            $(".schedule").removeClass("layui-hide")
+                                        }else{
+                                            $(".schedule").addClass("layui-hide")
+                                        }
+                                    }
+                                }
+                            })
+                            statusSelect.setValue(initValue,false,true);
+                        });
+
+
                         layui.use(["jquery", "xmSelect", "popup"], function() {
                             layui.$.ajax({
-                                url: "/admin/doctor-class/select?format=tree&first=1",
+                                url: "/admin/doctor-order-schedule/select?order_id="+res.data[0]['id'],
                                 dataType: "json",
                                 success: function (res) {
-                                    let value = layui.$("#pid").attr("value");
+                                    let value = layui.$("#schedule").attr("value");
                                     let initValue = value ? value.split(",") : [];
+                                    const schedules = res.data.map(item => {
+                                        const s = item.schedule;
+                                        return {
+                                            ...s,
+                                            datetime: `${s.date} ${s.start_time}-${s.end_time}`,
+                                            id: item.id
+                                        };
+                                    });
                                     layui.xmSelect.render({
-                                        el: "#pid",
-                                        name: "pid",
+                                        el: "#schedule",
+                                        name: "order_schedule_id",
                                         initValue: initValue,
                                         tips: "无",
+                                        template({item, sels, name, value}) {
+                                            return item.date + " " + item.start_time + " - " + item.end_time;
+                                        },
+                                        prop: {
+                                            name: 'datetime',
+                                            value: 'id',
+                                        },
                                         toolbar: {show: true, list: ["CLEAR"]},
-                                        data: res.data,
+                                        data: schedules,
                                         value: "0",
                                         model: {"icon":"hidden","label":{"type":"text"}},
                                         clickClose: true,
@@ -137,36 +186,6 @@
                                     if (res.code) {
                                         return layui.popup.failure(res.msg);
                                     }
-                                }
-                            });
-                        });
-                        
-                        // 字段 图标 icon
-                        layui.use(["upload", "layer"], function() {
-                            let input = layui.$("#icon").prev();
-                            input.prev().attr("src", input.val());
-                            layui.$("#attachment-choose-icon").on("click", function() {
-                                parent.layer.open({
-                                    type: 2,
-                                    title: "选择附件",
-                                    content: "/app/admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
-                                    area: ["95%", "90%"],
-                                    success: function (layero, index) {
-                                        parent.layui.$("#layui-layer" + index).data("callback", function (data) {
-                                            input.val(data.url).prev().attr("src", data.url);
-                                        });
-                                    }
-                                });
-                            });
-                            layui.upload.render({
-                                elem: "#icon",
-                                url: "/app/admin/upload/avatar",
-                                acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
-                                multiple: 0,
-                                field: "__file__",
-                                done: function (res) {
-                                    if (res.code > 0) return layui.layer.msg(res.msg);
-                                    this.item.prev().val(res.data.url).prev().attr("src", res.data.url);
                                 }
                             });
                         });

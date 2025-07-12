@@ -2,21 +2,20 @@
 
 namespace app\admin\controller;
 
-use plugin\admin\app\common\Tree;
 use support\Request;
 use support\Response;
-use app\admin\model\DoctorClass;
+use app\admin\model\VipBenefit;
 use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
 
 /**
- * 医师分类 
+ * VIP权益配置 
  */
-class DoctorClassController extends Crud
+class VipBenefitController extends Crud
 {
     
     /**
-     * @var DoctorClass
+     * @var VipBenefit
      */
     protected $model = null;
 
@@ -26,29 +25,8 @@ class DoctorClassController extends Crud
      */
     public function __construct()
     {
-        $this->model = new DoctorClass;
+        $this->model = new VipBenefit;
     }
-
-    /**
-     * 查询
-     * @param Request $request
-     * @return Response
-     * @throws BusinessException
-     */
-    public function select(Request $request): Response
-    {
-        $level = $request->input('level');
-        [$where, $format, $limit, $field, $order] = $this->selectInput($request);
-        $query = $this->doSelect($where, $field, $order);
-        if ($level == 1){
-            $query->whereNull('pid');
-        }elseif ($level == 2){
-            $query->whereNotNull('pid');
-        }
-        return $this->doFormat($query, $format, $limit);
-    }
-
-
     
     /**
      * 浏览
@@ -56,7 +34,7 @@ class DoctorClassController extends Crud
      */
     public function index(): Response
     {
-        return view('doctor-class/index');
+        return view('vip-benefit/index');
     }
 
     /**
@@ -70,7 +48,7 @@ class DoctorClassController extends Crud
         if ($request->method() === 'POST') {
             return parent::insert($request);
         }
-        return view('doctor-class/insert');
+        return view('vip-benefit/insert');
     }
 
     /**
@@ -84,7 +62,7 @@ class DoctorClassController extends Crud
         if ($request->method() === 'POST') {
             return parent::update($request);
         }
-        return view('doctor-class/update');
+        return view('vip-benefit/update');
     }
 
 }

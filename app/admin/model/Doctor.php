@@ -26,6 +26,12 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor normal()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor query()
+ * @property int $admin_id 后台
+ * @property int $vip_level 限制vip
+ * @property string $price 单次诊费
+ * @property-read \app\admin\model\DoctorClass|null $classFirst
+ * @property-read \app\admin\model\DoctorClass|null $classSecond
+ * @property-read \app\admin\model\Vip|null $vip
  * @mixin \Eloquent
  */
 class Doctor extends Base
@@ -47,6 +53,21 @@ class Doctor extends Base
     public function scopeNormal($query)
     {
         return $query->where('status', 1);
+    }
+
+    function classFirst()
+    {
+        return $this->belongsTo(DoctorClass::class, 'class_first_id', 'id');
+    }
+
+    function classSecond()
+    {
+        return $this->belongsTo(DoctorClass::class, 'class_sec_id', 'id');
+    }
+
+    function vip()
+    {
+        return $this->belongsTo(Vip::class, 'vip_level', 'id');
     }
     
     

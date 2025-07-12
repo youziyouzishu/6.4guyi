@@ -2,21 +2,20 @@
 
 namespace app\admin\controller;
 
-use plugin\admin\app\common\Tree;
 use support\Request;
 use support\Response;
-use app\admin\model\DoctorClass;
+use app\admin\model\DoctorOrderSchedule;
 use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
 
 /**
- * 医师分类 
+ * 预约时间 
  */
-class DoctorClassController extends Crud
+class DoctorOrderScheduleController extends Crud
 {
     
     /**
-     * @var DoctorClass
+     * @var DoctorOrderSchedule
      */
     protected $model = null;
 
@@ -26,7 +25,16 @@ class DoctorClassController extends Crud
      */
     public function __construct()
     {
-        $this->model = new DoctorClass;
+        $this->model = new DoctorOrderSchedule;
+    }
+    
+    /**
+     * 浏览
+     * @return Response
+     */
+    public function index(): Response
+    {
+        return view('doctor-order-schedule/index');
     }
 
     /**
@@ -37,26 +45,9 @@ class DoctorClassController extends Crud
      */
     public function select(Request $request): Response
     {
-        $level = $request->input('level');
         [$where, $format, $limit, $field, $order] = $this->selectInput($request);
-        $query = $this->doSelect($where, $field, $order);
-        if ($level == 1){
-            $query->whereNull('pid');
-        }elseif ($level == 2){
-            $query->whereNotNull('pid');
-        }
+        $query = $this->doSelect($where, $field, $order)->with(['schedule']);
         return $this->doFormat($query, $format, $limit);
-    }
-
-
-    
-    /**
-     * 浏览
-     * @return Response
-     */
-    public function index(): Response
-    {
-        return view('doctor-class/index');
     }
 
     /**
@@ -70,7 +61,7 @@ class DoctorClassController extends Crud
         if ($request->method() === 'POST') {
             return parent::insert($request);
         }
-        return view('doctor-class/insert');
+        return view('doctor-order-schedule/insert');
     }
 
     /**
@@ -84,7 +75,7 @@ class DoctorClassController extends Crud
         if ($request->method() === 'POST') {
             return parent::update($request);
         }
-        return view('doctor-class/update');
+        return view('doctor-order-schedule/update');
     }
 
 }
