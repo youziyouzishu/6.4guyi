@@ -2,6 +2,7 @@
 
 namespace app\admin\model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use plugin\admin\app\model\Base;
 
 /**
@@ -32,10 +33,13 @@ use plugin\admin\app\model\Base;
  * @property-read \app\admin\model\DoctorClass|null $classFirst
  * @property-read \app\admin\model\DoctorClass|null $classSecond
  * @property-read \app\admin\model\Vip|null $vip
+ * @property string|null $deleted_at 删除时间
  * @mixin \Eloquent
  */
 class Doctor extends Base
 {
+
+    use SoftDeletes;
     /**
      * The table associated with the model.
      *

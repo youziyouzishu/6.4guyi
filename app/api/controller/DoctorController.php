@@ -60,6 +60,19 @@ class DoctorController extends Base
         return $this->success('成功', $rows);
     }
 
+
+    /**
+     * 获取医生详情
+     * @param Request $request
+     * @return \support\Response
+     */
+    function getDoctorDetail(Request $request)
+    {
+        $id = $request->input('id');
+        $doctor = Doctor::normal()->find($id);
+        return $this->success('成功', $doctor);
+    }
+
     /**
      * 排班列表
      * @param Request $request
@@ -291,6 +304,13 @@ class DoctorController extends Base
         return $this->success('成功', $rows);
     }
 
+    function getOrderDetail(Request $request)
+    {
+        $id = $request->input('id');
+        $order = DoctorOrder::with(['doctor', 'schedule'])->find($id);
+        return $this->success('成功', $order);
+    }
+
     /**
      * 获取健康档案
      * @param Request $request
@@ -312,6 +332,13 @@ class DoctorController extends Base
             ->paginate()
             ->items();
         return $this->success('成功', $rows);
+    }
+
+    function getHealthDetail(Request $request)
+    {
+        $id = $request->input('id');
+        $order = DoctorOrderRecord::with(['order','medicine'])->find($id);
+        return $this->success('成功', $order);
     }
 
     function payHealth(Request $request)

@@ -2,6 +2,7 @@
 
 namespace app\admin\model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use plugin\admin\app\model\Base;
 
 /**
@@ -17,10 +18,12 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass query()
+ * @property string|null $deleted_at 删除时间
  * @mixin \Eloquent
  */
 class DoctorClass extends Base
 {
+    use SoftDeletes;
     /**
      * The table associated with the model.
      *

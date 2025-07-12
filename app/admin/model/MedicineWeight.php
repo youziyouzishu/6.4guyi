@@ -2,6 +2,7 @@
 
 namespace app\admin\model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use plugin\admin\app\model\Base;
 
 /**
@@ -14,10 +15,12 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MedicineWeight newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MedicineWeight newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MedicineWeight query()
+ * @property string|null $deleted_at 删除时间
  * @mixin \Eloquent
  */
 class MedicineWeight extends Base
 {
+    use SoftDeletes;
     /**
      * The table associated with the model.
      *
