@@ -15,69 +15,30 @@
                 <div class="main-container mr-5">
                     
                     <div class="layui-form-item">
-                        <label class="layui-form-label">上级</label>
+                        <label class="layui-form-label required">关联商品</label>
                         <div class="layui-input-block">
-                            <div id="pid" name="pid" value=""></div>
+                            <input type="number" name="goods_id" value="" required lay-verify="required" class="layui-input">
                         </div>
                     </div>
                     
                     <div class="layui-form-item">
-                        <label class="layui-form-label required">名称</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="name" value="" required lay-verify="required" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">图标</label>
+                        <label class="layui-form-label required">图片</label>
                         <div class="layui-input-block">
                             <img class="img-3" src=""/>
-                            <input type="text" style="display:none" name="icon" value="" />
-                            <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="icon"  permission="app.admin.upload.image">
+                            <input type="text" style="display:none" name="image" value="" />
+                            <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="image"  permission="app.admin.upload.image">
                                 <i class="layui-icon layui-icon-upload"></i>上传图片
                             </button>
-                            <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="attachment-choose-icon"  permission="app.admin.upload.attachment">
+                            <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="attachment-choose-image"  permission="app.admin.upload.attachment">
                                 <i class="layui-icon layui-icon-align-left"></i>选择图片
                             </button>
                         </div>
                     </div>
-
-                    <div class="layui-form-item">
-                        <label class="layui-form-label required">地址</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="address" value="" required lay-verify="required" class="layui-input">
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label required">纬度</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="lat" value="" required lay-verify="required" class="layui-input">
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label required">经度</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="lng" value="" required lay-verify="required" class="layui-input">
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label required">营业时间</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="open" value="" required lay-verify="required" class="layui-input">
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label required">联系方式</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="mobile" value="" required lay-verify="required" class="layui-input">
-                        </div>
-                    </div>
-
                     
                     <div class="layui-form-item">
                         <label class="layui-form-label">权重</label>
                         <div class="layui-input-block">
-                            <input type="number" name="weigh" value="0" class="layui-input">
+                            <input type="number" name="weight" value="0" class="layui-input">
                         </div>
                     </div>
                     
@@ -106,40 +67,13 @@
         <script>
             
             // 相关接口
-            const INSERT_API = "/admin/doctor-class/insert";
-
-            layui.use(["jquery", "xmSelect", "popup"], function() {
-                layui.$.ajax({
-                    url: "/admin/doctor-class/select?format=tree&first=1",
-                    dataType: "json",
-                    success: function (res) {
-                        let value = layui.$("#pid").attr("value");
-                        let initValue = value ? value.split(",") : [];
-                        layui.xmSelect.render({
-                            el: "#pid",
-                            name: "pid",
-                            initValue: initValue,
-                            tips: "无",
-                            toolbar: {show: true, list: ["CLEAR"]},
-                            data: res.data,
-                            value: "0",
-                            model: {"icon":"hidden","label":{"type":"text"}},
-                            clickClose: true,
-                            radio: true,
-                            tree: {show: true,"strict":false,"clickCheck":true,"clickExpand":false},
-                        });
-                        if (res.code) {
-                            return layui.popup.failure(res.msg);
-                        }
-                    }
-                });
-            });
-
-            // 字段 图标 icon
+            const INSERT_API = "/admin/shop-banner/insert";
+            
+            // 字段 图片 image
             layui.use(["upload", "layer"], function() {
-                let input = layui.$("#icon").prev();
+                let input = layui.$("#image").prev();
                 input.prev().attr("src", input.val());
-                layui.$("#attachment-choose-icon").on("click", function() {
+                layui.$("#attachment-choose-image").on("click", function() {
                     parent.layer.open({
                         type: 2,
                         title: "选择附件",
@@ -153,9 +87,9 @@
                     });
                 });
                 layui.upload.render({
-                    elem: "#icon",
-                    url: "/app/admin/upload/avatar",
+                    elem: "#image",
                     acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
+                    url: "/app/admin/upload/image",
                     multiple: 0,
                     field: "__file__",
                     done: function (res) {

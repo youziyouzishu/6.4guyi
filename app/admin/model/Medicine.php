@@ -18,6 +18,9 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Medicine query()
  * @property string $price 克价
  * @property string|null $deleted_at 删除时间
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Medicine onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Medicine withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Medicine withoutTrashed()
  * @mixin \Eloquent
  */
 class Medicine extends Base

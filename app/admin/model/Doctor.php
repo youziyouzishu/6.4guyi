@@ -34,6 +34,9 @@ use plugin\admin\app\model\Base;
  * @property-read \app\admin\model\DoctorClass|null $classSecond
  * @property-read \app\admin\model\Vip|null $vip
  * @property string|null $deleted_at 删除时间
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor withoutTrashed()
  * @mixin \Eloquent
  */
 class Doctor extends Base

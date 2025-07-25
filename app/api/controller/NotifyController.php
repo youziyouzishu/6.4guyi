@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use app\admin\model\DoctorOrder;
+use app\admin\model\ShopOrder;
 use app\api\basic\Base;
 use Carbon\Carbon;
 use support\Db;
@@ -147,10 +148,24 @@ class NotifyController extends Base
                         $order->status = 1;
                     }else{
                         $order->status = 2;
+                        $order->schedule_id = $order->scheduleItem->first()->schedule_id;
                     }
                     $order->pay_status = 1;
                     $order->pay_time = Carbon::now();
                     $order->pay_type = $paytype;
+                    $order->save();
+                    $order->doctor->sales += 1;
+                    $order->doctor->save();
+                    break;
+                case 'goods':
+                    $order = ShopOrder::where(['ordersn' => $out_trade_no, 'status' => 0])->first();
+                    if (!$order) {
+                        throw new \Exception('订单不存在');
+                    }
+                    $order->status = 1;
+                    $order->pay_time = Carbon::now();
+                    $order->pay_type = $paytype;
+                    $order->pay_status = 1;
                     $order->save();
                     break;
                 default:

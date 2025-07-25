@@ -3,6 +3,7 @@
 namespace app\queue\redis;
 
 use app\admin\model\DoctorOrder;
+use app\admin\model\ShopOrder;
 use Carbon\Carbon;
 use Webman\RedisQueue\Consumer;
 
@@ -19,11 +20,19 @@ class Job implements Consumer
     {
         $event = $data['event'];
 
-        if ($event == 'order_expire') {
+        if ($event == 'doctor_order_expire') {
             $id = $data['id'];
             $order = DoctorOrder::find($id);
             if ($order && $order->status == 0) {
                 $order->status = 5;
+                $order->save();
+            }
+        }
+        if ($event == 'goods_order_expire') {
+            $id = $data['id'];
+            $order = ShopOrder::find($id);
+            if ($order && $order->status == 0) {
+                $order->status = 2;
                 $order->save();
             }
         }

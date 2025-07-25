@@ -38,7 +38,8 @@
     "webman/redis-queue": "^2.1",
     "yansongda/pay": "^3.7",
     "webman/redis": "^2.1",
-    "w7corp/easywechat": "^6.17"
+    "w7corp/easywechat": "^6.17",
+    "ext-bcmath": "*"
   },
   "suggest": {
     "ext-event": "For better performance. "

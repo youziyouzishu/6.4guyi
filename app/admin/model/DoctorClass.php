@@ -19,6 +19,9 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass query()
  * @property string|null $deleted_at 删除时间
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass withoutTrashed()
  * @mixin \Eloquent
  */
 class DoctorClass extends Base

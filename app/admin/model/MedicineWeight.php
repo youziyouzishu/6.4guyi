@@ -16,6 +16,9 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MedicineWeight newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MedicineWeight query()
  * @property string|null $deleted_at 删除时间
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MedicineWeight onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MedicineWeight withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MedicineWeight withoutTrashed()
  * @mixin \Eloquent
  */
 class MedicineWeight extends Base

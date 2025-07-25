@@ -9,7 +9,7 @@ use Tinywan\Jwt\Exception\JwtRefreshTokenExpiredException;
 
 class UserController extends Base
 {
-
+    protected array $noNeedLogin = ['getMobile'];
     function getUserInfo(Request $request)
     {
         $user_id = $request->post('user_id');
@@ -39,6 +39,27 @@ class UserController extends Base
         }
         $row->save();
         return $this->success('成功');
+    }
+
+    function getMobile(Request $request)
+    {
+        $code = $request->post('code');
+        //小程序
+        $config = config('wechat.UserMiniApp');
+        $app = new \EasyWeChat\MiniApp\Application($config);
+        $api = $app->getClient();
+        $ret = $api->postJson('/wxa/business/getuserphonenumber', [
+            'code' => $code
+        ]);
+        $ret = json_decode($ret);
+        if ($ret->errcode != 0) {
+            return $this->fail('获取手机号失败');
+        }
+        $mobile = $ret->phone_info->phoneNumber;
+
+        return $this->success('成功',[
+            'mobile' => $mobile
+        ]);
     }
 
 }

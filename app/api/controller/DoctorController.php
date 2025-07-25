@@ -46,14 +46,24 @@ class DoctorController extends Base
      */
     function getDoctorList(Request $request)
     {
+        $keyword = $request->post('keyword');
         $class_first_id = $request->post('class_first_id');
         $class_sec_id = $request->post('class_sec_id');
         $rows = Doctor::normal()
+            ->with(['classSecond'])
             ->when(!empty($class_first_id), function ($query) use ($class_first_id) {
                 $query->where('class_first_id', $class_first_id);
             })
             ->when(!empty($class_sec_id), function ($query) use ($class_sec_id) {
                 $query->where('class_sec_id', $class_sec_id);
+            })
+            ->when(!empty($keyword), function ($query) use ($keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('name', 'like', "%{$keyword}%")
+                        ->orWhere('tags', 'like', "%{$keyword}%")
+                        ->orWhere('level', 'like', "%{$keyword}%")
+                        ->orWhere('skill', 'like', "%{$keyword}%");
+                });
             })
             ->paginate()
             ->items();
@@ -69,7 +79,7 @@ class DoctorController extends Base
     function getDoctorDetail(Request $request)
     {
         $id = $request->input('id');
-        $doctor = Doctor::normal()->find($id);
+        $doctor = Doctor::normal()->with(['classSecond'])->find($id);
         return $this->success('成功', $doctor);
     }
 
@@ -83,27 +93,29 @@ class DoctorController extends Base
         $id = $request->input('id');
         $startDate = Carbon::today(); // 00:00:00
         $endDate = Carbon::today()->addDays(7); // +7天后 00:00:00
-        $schedules = DoctorSchedule::where('doctor_id', $id)->whereBetween('date', [$startDate, $endDate])->get()->groupBy('date');
+        $schedules = DoctorSchedule::where('doctor_id', $id)->whereBetween('date', [$startDate, $endDate])->get()->groupBy(function ($item){
+            return $item->date->toDateString();  // 保证 key 是 'Y-m-d' 格式
+        });
         // 构建索引数组结构
         $result = [];
-        $weekMap = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
-        foreach (Carbon::parse($startDate)->daysUntil($endDate->copy()->addDay()) as $date) {
+        foreach ($startDate->daysUntil($endDate->copy()->addDay()) as $date) {
+
             $dateKey = $date->toDateString();        // '2025-07-10'
             $formattedDate = $date->format('m/d');   // '07/10'
-            $diff = $date->diffInDays($startDate);
-
+            $diff = (int) round($startDate->diffInDays($date));
             $dayLabel = match ($diff) {
                 0 => '今天',
                 1 => '明天',
-                default => $weekMap[$date->dayOfWeek],
+                default => $date->locale('zh_CN')->translatedFormat('D'),
             };
-
-            $result[] = [
+            $data = [
                 'date' => $formattedDate,
                 'day_of_week' => $dayLabel,
                 'schedules' => $schedules->get($dateKey, collect())->values(),
             ];
+
+            $result[] = $data;
         }
         return $this->success('成功', $result);
     }
@@ -114,32 +126,19 @@ class DoctorController extends Base
         $schedule_ids = $request->input('schedule_ids');//预约时间
         $schedule_ids = explode(',', $schedule_ids);
         $doctor = Doctor::normal()->find($id);
-        if (!$doctor) {
-            return $this->fail('未找到该医师');
-        }
         $user = $request->user();
-        if ($user->vip_level < $doctor->vip_level) {
-            return $this->fail('请提升会员等级');
-        }
         $schedules = DoctorSchedule::whereIn('id', $schedule_ids)->get();
-        if ($schedules->isEmpty()) {
-            return $this->fail('未找到该时间段');
-        }
-        $conflict = $schedules->first(function (DoctorSchedule $schedule) {
-            return $schedule->status != 1;
-        });
 
-        if ($conflict) {
-            return $this->fail($conflict->start_time . '-' . $conflict->end_time . ' 时间段已被预约');
-        }
-
-        $pay_amount = $schedules->count() * $doctor->price;
+        $discount_amount = 0;
+        $price = $doctor->price;
         if ($user->vip_level >= 5) {
-            $pay_amount = 0;
+            $discount_amount = $doctor->price;
         }
+        $pay_amount = $price - $discount_amount;
 
         $data = [
             'pay_amount' => $pay_amount,
+            'discount_amount' => $discount_amount,
             'doctor' => $doctor,
             'schedules' => $schedules,
         ];
@@ -147,6 +146,11 @@ class DoctorController extends Base
         return $this->success('成功', $data);
     }
 
+    /**
+     * 创建订单
+     * @param Request $request
+     * @return \support\Response
+     */
     function createOrder(Request $request)
     {
         $id = $request->input('id');
@@ -211,7 +215,7 @@ class DoctorController extends Base
                 'schedule_id' => $schedule->id,
             ]);
         });
-        Client::send('job', ['id' => $order->id, 'event' => 'order_expire'], 60 * 5);
+        Client::send('job', ['id' => $order->id, 'event' => 'doctor_order_expire'], 60 * 5);
         return $this->success('成功', $order);
     }
 
@@ -288,10 +292,17 @@ class DoctorController extends Base
     }
 
 
+    /**
+     * 我的预约
+     * @param Request $request
+     * @return \support\Response
+     */
     function getMyOrderList(Request $request)
     {
         $status = $request->input('status');#状态：0全部 1待确认 2已预约 3已完成 4过号未诊
-        $rows = DoctorOrder::with(['doctor', 'schedule'])
+        $rows = DoctorOrder::with(['doctor'=>function ($query) {
+            $query->with(['classSecond']);
+        }, 'schedule'])
             ->where('user_id', $request->user_id)
             ->where(function ($query) use ($status) {
                 if (in_array($status, [1, 2, 3, 4])) {
@@ -304,10 +315,17 @@ class DoctorController extends Base
         return $this->success('成功', $rows);
     }
 
+    /**
+     * 预约详情
+     * @param Request $request
+     * @return \support\Response
+     */
     function getOrderDetail(Request $request)
     {
         $id = $request->input('id');
-        $order = DoctorOrder::with(['doctor', 'schedule'])->find($id);
+        $order = DoctorOrder::with(['doctor'=>function ($query) {
+            $query->with(['classFirst','classSecond']);
+        }, 'schedule'])->find($id);
         return $this->success('成功', $order);
     }
 
@@ -341,6 +359,12 @@ class DoctorController extends Base
         return $this->success('成功', $order);
     }
 
+    /**
+     * 健康档案支付
+     * @param Request $request
+     * @return \support\Response
+     * @throws \Throwable
+     */
     function payHealth(Request $request)
     {
         $ordersn = $request->input('ordersn');

@@ -27,7 +27,7 @@ class AccountController extends Base
         if (!$user) {
             $user = User::create([
                 'openid' => $openid,
-            ]);
+            ])->refresh();
         }
         $token = JwtToken::generateToken([
             'id' => $user->id,
