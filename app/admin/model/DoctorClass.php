@@ -22,6 +22,11 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass withTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorClass withoutTrashed()
+ * @property string|null $address 地址
+ * @property string|null $lat 纬度
+ * @property string|null $lng 经度
+ * @property string|null $open 营业时间
+ * @property string|null $mobile 手机号
  * @mixin \Eloquent
  */
 class DoctorClass extends Base

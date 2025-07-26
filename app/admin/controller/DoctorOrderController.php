@@ -41,7 +41,7 @@ class DoctorOrderController extends Crud
     public function select(Request $request): Response
     {
         [$where, $format, $limit, $field, $order] = $this->selectInput($request);
-        $query = $this->doSelect($where, $field, $order)->with(['schedule','record']);
+        $query = $this->doSelect($where, $field, $order)->with(['schedule','record','doctor','user']);
         if (in_array(3, admin('roles'))) {
             $doctor = Doctor::where('admin_id',admin_id())->first();
             $query->where('doctor_id', $doctor->id);

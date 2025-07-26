@@ -25,6 +25,8 @@ use plugin\admin\app\model\Base;
  * @property string $price 单价
  * @property-read \app\admin\model\ShopGoods|null $goods
  * @property int $status 状态:0=无,1=申请售后,2=通过,3=拒绝,4=待评价,5=评价完成
+ * @property-read \app\admin\model\ShopOrderItemComment|null $comment
+ * @property-read \app\admin\model\ShopOrder|null $order
  * @mixin \Eloquent
  */
 class ShopOrderItem extends Base
@@ -59,6 +61,16 @@ class ShopOrderItem extends Base
     function goods()
     {
         return $this->belongsTo(ShopGoods::class, 'goods_id', 'id');
+    }
+
+    function comment()
+    {
+        return $this->hasOne(ShopOrderItemComment::class, 'item_id', 'id');
+    }
+
+    function order()
+    {
+        return $this->belongsTo(ShopOrder::class, 'order_id', 'id');
     }
     
     

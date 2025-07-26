@@ -9,6 +9,7 @@ use app\admin\model\ShopGoods;
 use app\admin\model\ShopGoodsSku;
 use app\admin\model\ShopOrder;
 use app\admin\model\ShopOrderItem;
+use app\admin\model\ShopOrderItemComment;
 use app\admin\model\User;
 use app\api\basic\Base;
 use app\api\service\Pay;
@@ -27,7 +28,7 @@ class ShopController extends Base
     function getBannerList(Request $request)
     {
         $banners = ShopBanner::orderByDesc('weight')->get();
-        return $this->success('成功',$banners);
+        return $this->success('成功', $banners);
     }
 
     /**
@@ -38,7 +39,7 @@ class ShopController extends Base
     function getClassList(Request $request)
     {
         $class = ShopClass::orderByDesc('weight')->get();
-        return $this->success('成功',$class);
+        return $this->success('成功', $class);
     }
 
     /**
@@ -58,21 +59,21 @@ class ShopController extends Base
             ->when(!empty($class_id), function ($query) use ($class_id) {
                 return $query->where('class_id', $class_id);
             })
-            ->where(function ($query)use($order){
-                if ( $order == 1){
+            ->where(function ($query) use ($order) {
+                if ($order == 1) {
                     $query->orderByDesc('weight');
                 }
-                if ( $order == 2){
+                if ($order == 2) {
                     $query->orderByDesc('sales');
                 }
-                if ( $order == 3){
+                if ($order == 3) {
                     $query->orderBy('price');
                 }
             })
             ->orderByDesc('weight')
             ->paginate()
             ->items();
-        return $this->success('成功',$goods);
+        return $this->success('成功', $goods);
     }
 
     /**
@@ -84,7 +85,7 @@ class ShopController extends Base
     {
         $id = $request->input('id');
         $goods = ShopGoods::normal()->with(['sku'])->find($id);
-        return $this->success('成功',$goods);
+        return $this->success('成功', $goods);
     }
 
     /**
@@ -135,7 +136,7 @@ class ShopController extends Base
     function indexCart(Request $request)
     {
         $carts = ShopCart::where('user_id', $request->user_id)->with(['sku'])->get();
-        return $this->success('成功',$carts);
+        return $this->success('成功', $carts);
     }
 
 
@@ -200,7 +201,7 @@ class ShopController extends Base
 
         $total_price = bcadd((string)$total_goods_price, (string)$total_freight, 2);
 
-        return $this->success('成功',[
+        return $this->success('成功', [
             'total_goods_price' => $total_goods_price,
             'total_freight' => $total_freight,
             'total_pay_amount' => $total_price,
@@ -252,7 +253,6 @@ class ShopController extends Base
         }
 
 
-
         $total_price = bcadd((string)$total_goods_price, (string)$total_freight, 2);
 
         //创建订单
@@ -266,7 +266,7 @@ class ShopController extends Base
         ]);
         $order->items()->createMany($items);
         Client::send('job', ['order_id' => $order->id, 'event' => 'goods_order_expire'], 60 * 15);
-        return $this->success('成功',$order);
+        return $this->success('成功', $order);
     }
 
 
@@ -326,26 +326,26 @@ class ShopController extends Base
     function getOrderList(Request $request)
     {
         $status = $request->input('status');#订单状态:0=全部,1=待付款,2=待发货,3=待收货,4=已完成,5=售后
-        if (in_array($status, [0, 1, 2, 3, 4])){
+        if (in_array($status, [0, 1, 2, 3, 4])) {
             $orders = ShopOrder::where('user_id', $request->user_id)
                 ->when(!empty($status), function ($query) use ($status) {
-                    if ($status == 1){
+                    if ($status == 1) {
                         $query->where('status', 0);
                     }
-                    if ($status == 2){
+                    if ($status == 2) {
                         $query->where('status', 1);
                     }
-                    if ($status == 3){
+                    if ($status == 3) {
                         $query->where('status', 3);
                     }
-                    if ($status == 4){
+                    if ($status == 4) {
                         $query->where('status', 5);
                     }
                 })
                 ->orderBy('id', 'desc')
                 ->paginate()
                 ->items();
-        }else{
+        } else {
             $orders = ShopOrder::where('user_id', $request->user_id)
                 ->orderBy('id', 'desc')
                 ->paginate()
@@ -364,7 +364,7 @@ class ShopController extends Base
     {
         $id = $request->input('id');
         $order = ShopOrder::where('user_id', $request->user_id)->findOrFail($id);
-        if (in_array($order->status, [0,5])) {
+        if (in_array($order->status, [0, 5])) {
             return $this->fail('订单状态异常');
         }
         $order->delete();
@@ -389,7 +389,7 @@ class ShopController extends Base
         $post_data = array();
         $post_data['customer'] = $customer;
         $post_data['param'] = json_encode($param, JSON_UNESCAPED_UNICODE);
-        $sign = md5($post_data['param'].$key.$post_data['customer']);
+        $sign = md5($post_data['param'] . $key . $post_data['customer']);
         $post_data['sign'] = strtoupper($sign);
         $url = 'https://poll.kuaidi100.com/poll/query.do';
         $client = new \GuzzleHttp\Client();
@@ -399,7 +399,7 @@ class ShopController extends Base
         $result = $response->getBody()->getContents();
         $result = json_decode($result);
         $result = $result->data;
-        return $this->success('成功',$result);
+        return $this->success('成功', $result);
     }
 
     /**
@@ -472,24 +472,43 @@ class ShopController extends Base
         $content = $request->input('content');
         $images = $request->input('images');
         $anonymity = $request->input('anonymity');
-        $order = ShopOrderItem::where('user_id', $request->user_id)->findOrFail($id);
-        if ($order->status != 4) {
+        $item = ShopOrderItem::findOrFail($id);
+        if ($item->status != 4) {
             return $this->fail('订单状态异常');
         }
-        $order->status = 5;
-        $order->save();
-
+        $item->status = 5;#改为评价完成
+        $item->save();
+        $item->comment()->create([
+            'user_id' => $request->user_id,
+            'order_id' => $item->order_id,
+            'goods_id' => $item->goods_id,
+            'score' => $score,
+            'content' => $content,
+            'images' => $images,
+            'anonymity' => $anonymity,
+        ]);
+        //如果全部子订单都评价完成 主订单也改为评价完成
+        if ($item->order->items->where('status', 4)->isEmpty()) {
+            $item->order->status = 5;#改为订单完成
+            $item->order->save();
+        }
+        return $this->success('成功');
     }
 
 
+    /**
+     * 申请售后
+     * @param Request $request
+     */
+    function applyService(Request $request)
+    {
+        $id = $request->input('id');#item_id
+        $refund_type = $request->input('refund_type');#类型:1=退货退款,2=换货
+        $item = ShopOrderItem::findOrFail($id);
+        if (!in_array($item->order->status, [3, 4, 5])) {
+            return $this->fail('订单状态异常');
+        }
 
 
-
-
-
-
-
-
-
-
+    }
 }

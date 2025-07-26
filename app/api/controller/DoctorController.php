@@ -62,7 +62,7 @@ class DoctorController extends Base
                     $q->where('name', 'like', "%{$keyword}%")
                         ->orWhere('tags', 'like', "%{$keyword}%")
                         ->orWhere('level', 'like', "%{$keyword}%")
-                        ->orWhere('skill', 'like', "%{$keyword}%");
+                        ->orWhere('skilled', 'like', "%{$keyword}%");
                 });
             })
             ->paginate()

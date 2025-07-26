@@ -65,21 +65,18 @@ class DoctorScheduleController extends Crud
             $start_time = $request->post('start_time');
             $end_time = $request->post('end_time');
             $slot_duration = $request->post('slot_duration');
+            $doctor_id = $request->post('doctor_id');
             $date = Carbon::parse($date);
             $start_time = $date->copy()->setTimeFromTimeString($start_time);
             $end_time = $date->copy()->setTimeFromTimeString($end_time);
 
-            $doctor = Doctor::where('admin_id', admin_id())->first();
-            if (!$doctor) {
-                return $this->fail('只能医师操作');
-            }
             if ($date < Carbon::today()){
                 return $this->fail('只能排今天及以后的时间');
             }
             if ($start_time >= $end_time) {
                 return $this->fail('开始时间不能大于结束时间');
             }
-            $exist = DoctorSchedule::where('doctor_id', $doctor->id)
+            $exist = DoctorSchedule::where('doctor_id', $doctor_id)
                 ->where('date', $date)
                 ->exists();
             if ($exist) {
@@ -92,10 +89,9 @@ class DoctorScheduleController extends Crud
                 $slots->push($start_time->toDateTimeString());
                 $start_time->addMinutes((int)$slot_duration);
             }
-            dump($slots);
             for ($i = 0; $i < $slots->count() - 1; $i++) {
                 $data = [
-                    'doctor_id' => $doctor->id,
+                    'doctor_id' => $doctor_id,
                     'date' => $date->toDateString(),
                     'start_time' => $slots[$i],
                     'end_time' => $slots[$i + 1],
