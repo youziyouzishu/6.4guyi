@@ -5,6 +5,7 @@ namespace app\api\controller;
 use app\admin\model\Doctor;
 use app\admin\model\DoctorClass;
 use app\admin\model\DoctorOrder;
+use app\admin\model\DoctorOrderComment;
 use app\admin\model\DoctorOrderRecord;
 use app\admin\model\DoctorSchedule;
 use app\admin\model\User;
@@ -83,6 +84,13 @@ class DoctorController extends Base
         return $this->success('成功', $doctor);
     }
 
+    function getCommentList(Request $request)
+    {
+        $id = $request->input('id');
+        $comments = DoctorOrderComment::where('doctor_id', $id)->with(['user'])->paginate()->items();
+        return $this->success('成功', $comments);
+    }
+
     /**
      * 排班列表
      * @param Request $request
@@ -93,7 +101,7 @@ class DoctorController extends Base
         $id = $request->input('id');
         $startDate = Carbon::today(); // 00:00:00
         $endDate = Carbon::today()->addDays(7); // +7天后 00:00:00
-        $schedules = DoctorSchedule::where('doctor_id', $id)->whereBetween('date', [$startDate, $endDate])->get()->groupBy(function ($item){
+        $schedules = DoctorSchedule::where('doctor_id', $id)->whereBetween('date', [$startDate, $endDate])->get()->groupBy(function ($item) {
             return $item->date->toDateString();  // 保证 key 是 'Y-m-d' 格式
         });
         // 构建索引数组结构
@@ -103,7 +111,7 @@ class DoctorController extends Base
 
             $dateKey = $date->toDateString();        // '2025-07-10'
             $formattedDate = $date->format('m/d');   // '07/10'
-            $diff = (int) round($startDate->diffInDays($date));
+            $diff = (int)round($startDate->diffInDays($date));
             $dayLabel = match ($diff) {
                 0 => '今天',
                 1 => '明天',
@@ -304,9 +312,13 @@ class DoctorController extends Base
     function getMyOrderList(Request $request)
     {
         $status = $request->input('status');#状态：0全部 1待确认 2已预约 3已完成 4过号未诊
-        $rows = DoctorOrder::with(['doctor'=>function ($query) {
-            $query->with(['classSecond']);
-        }, 'schedule'])
+        $rows = DoctorOrder::with([
+            'doctor' => function ($query) {
+                $query->with(['classSecond']);
+            },
+            'schedule'
+        ])
+            ->withExists(['comment as is_comment'])
             ->where('user_id', $request->user_id)
             ->where(function ($query) use ($status) {
                 if (in_array($status, [1, 2, 3, 4])) {
@@ -327,10 +339,38 @@ class DoctorController extends Base
     function getOrderDetail(Request $request)
     {
         $id = $request->input('id');
-        $order = DoctorOrder::with(['doctor'=>function ($query) {
-            $query->with(['classFirst','classSecond']);
+        $order = DoctorOrder::with(['doctor' => function ($query) {
+            $query->with(['classFirst', 'classSecond']);
         }, 'schedule'])->find($id);
         return $this->success('成功', $order);
+    }
+
+
+    /**
+     * 评价
+     * @param Request $request
+     * @return \support\Response
+     */
+    function comment(Request $request)
+    {
+        $id = $request->input('id');
+        $content = $request->input('content');
+        $cure_score = $request->input('cure_score');
+        $manner_score = $request->input('manner_score');
+        $cryptonym = $request->input('cryptonym');
+        $order = DoctorOrder::find($id);
+        if ($order->status !=3 || $order->comment->exists()){
+            return $this->fail('请勿重复评价');
+        }
+        $order->comment->create([
+            'user_id' => $request->user_id,
+            'doctor_id' => $order->doctor_id,
+            'content' => $content,
+            'cure_score' => $cure_score,
+            'manner_score' => $manner_score,
+            'cryptonym' => $cryptonym,
+        ]);
+        return  $this->success('成功');
     }
 
     /**
@@ -341,7 +381,7 @@ class DoctorController extends Base
     function getMyHealthList(Request $request)
     {
         $status = $request->input('status');#状态：0全部  1待付款 2已付款
-        $rows = DoctorOrderRecord::with(['order','medicine'])
+        $rows = DoctorOrderRecord::with(['order', 'medicine'])
             ->where('user_id', $request->user_id)
             ->where(function ($query) use ($status) {
                 if ($status == 1) {
@@ -359,7 +399,7 @@ class DoctorController extends Base
     function getHealthDetail(Request $request)
     {
         $id = $request->input('id');
-        $order = DoctorOrderRecord::with(['order','medicine'])->find($id);
+        $order = DoctorOrderRecord::with(['order', 'medicine'])->find($id);
         return $this->success('成功', $order);
     }
 

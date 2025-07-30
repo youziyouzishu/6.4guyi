@@ -37,6 +37,7 @@ use plugin\admin\app\model\Base;
  * @property-read mixed $pay_type_text
  * @property-read mixed $status_text
  * @property-read \app\admin\model\DoctorOrderRecord|null $record
+ * @property-read \app\admin\model\DoctorOrderComment|null $comment
  * @mixin \Eloquent
  */
 class DoctorOrder extends Base
@@ -106,6 +107,11 @@ class DoctorOrder extends Base
     function record()
     {
         return $this->hasOne(DoctorOrderRecord::class, 'order_id', 'id');
+    }
+
+    function comment()
+    {
+        return $this->hasOne(DoctorOrderComment::class, 'order_id', 'id');
     }
 
     function getStatusTextAttribute($value)
