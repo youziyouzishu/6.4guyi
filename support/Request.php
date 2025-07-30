@@ -21,6 +21,7 @@ use Tinywan\Jwt\Exception\JwtRefreshTokenExpiredException;
  * Class Request
  * @package support
  * @property int $user_id 用户ID
+ * @property string $openid 微信唯一标识
  */
 class Request extends \Webman\Http\Request
 {

@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use app\admin\model\User;
+use app\admin\model\VipLog;
 use app\api\basic\Base;
 use Carbon\Carbon;
 use EasyWeChat\MiniApp\Application;
@@ -18,6 +19,7 @@ class AccountController extends Base
     function login(Request $request)
     {
         $code = $request->post('code');
+        $invitecode = $request->post('invitecode');
         $config = config('wechat.UserMiniApp');
         $app = new Application($config);
         $ret = $app->getUtils()->codeToSession($code);
@@ -25,9 +27,22 @@ class AccountController extends Base
 
         $user = User::where('openid', $openid)->first();
         if (!$user) {
+            if (!empty($invitecode)){
+                $invite_user = User::where('invitecode', $invitecode)->first();
+            }
+
             $user = User::create([
+                'pid' => isset($invite_user) ? $invite_user->id : null,
+                'invitecode'=>User::generateInvitecode(),
                 'openid' => $openid,
             ])->refresh();
+
+            #注册赠送vip
+            VipLog::create([
+                'user_id' => $user->id,
+                'vip_level' => 1,
+                'type' => 1
+            ]);
         }
         $token = JwtToken::generateToken([
             'id' => $user->id,

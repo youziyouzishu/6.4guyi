@@ -14,6 +14,9 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Vip newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Vip newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Vip query()
+ * @property string $price 价格
+ * @property string $original_price 原价
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\VipBenefit> $benefit
  * @mixin \Eloquent
  */
 class Vip extends Base
@@ -31,6 +34,11 @@ class Vip extends Base
      * @var string
      */
     protected $primaryKey = 'id';
+
+    function benefit()
+    {
+        return $this->hasMany(VipBenefit::class, 'vip_id', 'id');
+    }
     
     
     

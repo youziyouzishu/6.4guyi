@@ -32,7 +32,8 @@ class Pay
                 'payer' => [
                     'openid' => request()->openid,
                 ],
-                'attach' => $attach
+                'attach' => $attach,
+                '_config' => 'UserMiniApp',
             ]);
         } else {
             throw new \Exception('支付类型错误');

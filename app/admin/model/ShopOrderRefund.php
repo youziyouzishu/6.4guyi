@@ -15,9 +15,8 @@ use plugin\admin\app\model\Base;
  * @property int $refund_type 类型:1=退货退款,2=换货
  * @property int $status 状态:0=申请中,1=审核中,2=成功,3=拒绝
  * @property string $reason 原因
- * @property int $quantity 售后的数量
  * @property string|null $images 凭证
- * @property string|null $describe 描述
+ * @property string|null $content 描述
  * @property \Illuminate\Support\Carbon|null $created_at 创建时间
  * @property \Illuminate\Support\Carbon|null $updated_at 更新时间
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrderRefund newModelQuery()
@@ -48,9 +47,8 @@ class ShopOrderRefund extends Base
         'refund_type',
         'status',
         'reason',
-        'quantity',
         'images',
-        'describe',
+        'content',
         'created_at',
         'updated_at',
     ];

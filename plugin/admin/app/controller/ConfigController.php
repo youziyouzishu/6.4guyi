@@ -71,9 +71,6 @@ class ConfigController extends Base
         $config = $this->getByDefault();
         $data = [];
         foreach ($post as $section => $items) {
-            if (!isset($config[$section])) {
-                continue;
-            }
             switch ($section) {
                 case 'logo':
                     $data[$section]['title'] = htmlspecialchars($items['title'] ?? '');
@@ -90,6 +87,16 @@ class ConfigController extends Base
                     $data[$section]['controlWidth'] = (int)($items['controlWidth'] ?? 2000);
                     $data[$section]['select'] = (int)$items['select'] ?? 0;
                     $data[$section]['async'] = true;
+                    break;
+                case 'shop':
+                    $data[$section]['address'] = htmlspecialchars($items['address'] ?? '');
+                    $data[$section]['name'] = htmlspecialchars($items['name'] ?? '');
+                    $data[$section]['mobile'] = htmlspecialchars($items['mobile'] ?? '');
+                    break;
+                case 'rule':
+                    $data[$section]['privacy_policy'] = $items['privacy_policy'] ?? '';
+                    $data[$section]['user_agreement'] = $items['user_agreement'] ?? '';
+                    $data[$section]['invite_rule'] = $items['invite_rule'] ?? '';
                     break;
                 case 'tab':
                     $data[$section]['enable'] = true;

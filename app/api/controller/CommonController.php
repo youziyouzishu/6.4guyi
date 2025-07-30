@@ -24,8 +24,7 @@ class CommonController extends Base
     #获取配置
     function getConfig()
     {
-        $name = 'admin_config';
-        $config = Option::where('name', $name)->value('value');
+        $config = Option::where('name', 'system_config')->value('value');
         $config = json_decode($config);
         return $this->success('成功', $config);
     }

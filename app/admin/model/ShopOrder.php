@@ -30,6 +30,7 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrder onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrder withTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrder withoutTrashed()
+ * @property int|null $before_status 售后前状态
  * @mixin \Eloquent
  */
 class ShopOrder extends Base

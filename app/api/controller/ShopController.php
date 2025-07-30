@@ -2,6 +2,8 @@
 
 namespace app\api\controller;
 
+use app\admin\model\Express;
+use app\admin\model\RefundReason;
 use app\admin\model\ShopBanner;
 use app\admin\model\ShopCart;
 use app\admin\model\ShopClass;
@@ -10,6 +12,7 @@ use app\admin\model\ShopGoodsSku;
 use app\admin\model\ShopOrder;
 use app\admin\model\ShopOrderItem;
 use app\admin\model\ShopOrderItemComment;
+use app\admin\model\ShopOrderRefund;
 use app\admin\model\User;
 use app\api\basic\Base;
 use app\api\service\Pay;
@@ -356,6 +359,18 @@ class ShopController extends Base
     }
 
     /**
+     * 获取订单详情
+     * @param Request $request
+     * @return Response
+     */
+    function getOrderDetail(Request $request)
+    {
+        $id = $request->input('id');
+        $order = ShopOrder::where('user_id', $request->user_id)->findOrFail($id);
+        return $this->success('成功', $order);
+    }
+
+    /**
      * 删除订单
      * @param Request $request
      * @return Response
@@ -495,6 +510,29 @@ class ShopController extends Base
         return $this->success('成功');
     }
 
+    /**
+     * 退货原因
+     * @param Request $request
+     * @return Response
+     */
+    function getRefundReason(Request $request)
+    {
+        $type = $request->input('type');
+        $reasons = RefundReason::where('type', $type)->get();
+        return $this->success('成功', $reasons);
+    }
+
+    /**
+     * 获取子订单详情
+     * @param Request $request
+     * @return Response
+     */
+    function getItemDetail(Request $request)
+    {
+        $id = $request->input('id');#item_id
+        $item = ShopOrderItem::where('id', $id)->with(['goods'])->first();
+        return $this->success('成功', $item);
+    }
 
     /**
      * 申请售后
@@ -504,11 +542,97 @@ class ShopController extends Base
     {
         $id = $request->input('id');#item_id
         $refund_type = $request->input('refund_type');#类型:1=退货退款,2=换货
+        $reason = $request->input('reason');
+        $images = $request->input('images');
+        $content = $request->input('content');
         $item = ShopOrderItem::findOrFail($id);
         if (!in_array($item->order->status, [3, 4, 5])) {
             return $this->fail('订单状态异常');
         }
+        $item->before_status = $item->status;
+        $item->status = 1;#申请售后中
+        $item->order->before_status = $item->order->status == 6 ? $item->order->before_status : $item->order->status;
+        $item->order->status = 6;#申请售后中
+        $item->order->save();
+        $item->save();
 
 
+        ShopOrderRefund::create([
+            'order_id' => $item->order_id,
+            'item_id' => $item->id,
+            'user_id' => $request->user_id,
+            'refund_type' => $refund_type,
+            'reason' => $reason,
+            'images' => $images,
+            'content' => $content,
+        ]);
+
+        return $this->success('成功');
     }
+
+    /**
+     * 撤销售后
+     * @param Request $request
+     */
+    function cacelService(Request $request)
+    {
+        $id = $request->input('id');
+        $item = ShopOrderItem::findOrFail($id);
+        if ($item->status != 1) {
+            return $this->fail('订单状态异常');
+        }
+        #恢复子订单状态
+        $item->status = $item->before_status;
+        $item->save();
+        #把所有售后申请改为取消
+        ShopOrderRefund::where('item_id', $id)->where('status', 0)->each(function (ShopOrderRefund $refund) {
+            $refund->status = 3;
+            $refund->save();
+        });
+        #恢复主订单状态
+        if ($item->order->items->where('status', 1)->isEmpty()){
+            $item->order->status = $item->order->before_status;
+            $item->order->save();
+        }
+        return $this->success('成功');
+    }
+
+    /**
+     * 获取物流服务商
+     * @param Request $request
+     * @return Response
+     */
+    function getExpressList(Request $request)
+    {
+        $rows = Express::all();
+        return $this->success('成功', $rows);
+    }
+
+    /**
+     * 售后发货
+     * @param Request $request
+     */
+    function deliveryService(Request $request)
+    {
+        $id = $request->input('id');#item_id
+        $express_id = $request->input('express_id');
+        $express_no = $request->input('express_no');
+        $refund_mark = $request->input('refund_mark');
+        $images = $request->input('images');
+        $item = ShopOrderItem::findOrFail($id);
+        if ($item->status != 6) {
+            return $this->fail('订单状态异常');
+        }
+        $item->refund_express_no = $express_no;
+        $item->refund_express = Express::where('id', $express_id)->value('name');
+        $item->refund_mark = $refund_mark;
+        $item->status = 7;
+        $item->refund_images = $images;
+        $item->save();
+        return $this->success('操作成功');
+    }
+
+
+
+
 }

@@ -27,6 +27,13 @@ use plugin\admin\app\model\Base;
  * @property int $status 状态:0=无,1=申请售后,2=通过,3=拒绝,4=待评价,5=评价完成
  * @property-read \app\admin\model\ShopOrderItemComment|null $comment
  * @property-read \app\admin\model\ShopOrder|null $order
+ * @property int|null $before_status 售后前状态
+ * @property string|null $express_no 物流单号
+ * @property string|null $express 物流公司
+ * @property string|null $refund_express_no 退货单号
+ * @property string|null $refund_express 退货公司
+ * @property string|null $refund_mark 退货备注
+ * @property string|null $refund_images 退货照片
  * @mixin \Eloquent
  */
 class ShopOrderItem extends Base
@@ -72,6 +79,8 @@ class ShopOrderItem extends Base
     {
         return $this->belongsTo(ShopOrder::class, 'order_id', 'id');
     }
+
+
     
     
 }

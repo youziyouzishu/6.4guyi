@@ -61,6 +61,13 @@ class UserController extends Crud
     public function update(Request $request): Response
     {
         if ($request->method() === 'POST') {
+            $id = $request->input('id');
+            $user = $this->model->find($id);
+            $money = $request->input('money');
+            if (isset($money) && $user->money != $money) {
+                $diff_money = function_exists('bcsub') ? bcsub($money, $user->money, 2) : $money - $user->money;
+                \app\admin\model\User::changeMoney($diff_money, $id, '会员余额变动');
+            }
             return parent::update($request);
         }
         return raw_view('user/update');

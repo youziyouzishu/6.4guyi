@@ -2,6 +2,7 @@
 
 namespace app\admin\model;
 
+use Illuminate\Support\Str;
 use plugin\admin\app\model\Base;
 use support\Db;
 
@@ -30,11 +31,21 @@ use support\Db;
  * @property \Illuminate\Support\Carbon|null $updated_at 更新时间
  * @property int $role 角色
  * @property int $status 禁用
- * @property int $vip_level VIP等级
  * @property string|null $openid 微信标识
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
+ * @property string $invitecode 邀请码
+ * @property int|null $pid 上级
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $children
+ * @property-read User|null $parent
+ * @property int $vip_log_id vip变更日志id
+ * @property-read \app\admin\model\VipLog|null $lastVipLog
+ * @property-read mixed $vip_level VIP等级
+ * @property string $total_consume 累计消费
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\VipLog> $vipLog
+ * @property \Illuminate\Support\Carbon|null $last_consume_at 最后消费时间
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\UserMoneyLog> $moneyLog
  * @mixin \Eloquent
  */
 class User extends Base
@@ -53,13 +64,20 @@ class User extends Base
      */
     protected $primaryKey = 'id';
 
+    protected $casts = [
+        'last_consume_at' => 'datetime'
+    ];
+
+    protected $appends = [
+        'vip_level'
+    ];
+
     protected $fillable = [
         'id',
         'openid',
+        'invitecode',
+        'pid',
         'nickname',
-        'avatar',
-        'phone',
-        'vip_id',
         'created_at',
         'updated_at',
     ];
@@ -84,7 +102,48 @@ class User extends Base
             throw $e;
         }
     }
-    
+
+    /**
+     * 生成邀请码
+     * @return string
+     */
+    public static function generateInvitecode()
+    {
+        do {
+            $invitecode = Str::random(8);
+        } while (self::where(['invitecode' => $invitecode])->exists());
+        return $invitecode;
+    }
+
+    function parent()
+    {
+        return $this->belongsTo(self::class, 'pid', 'id');
+    }
+
+    function children()
+    {
+        return $this->hasMany(self::class, 'pid', 'id');
+    }
+
+    function lastVipLog()
+    {
+        return $this->hasOne(VipLog::class, 'user_id', 'id')->orderByDesc('id');
+    }
+
+    function getVipLevelAttribute($value)
+    {
+        return $this->lastVipLog->vip_level;
+    }
+
+    function vipLog()
+    {
+        return $this->hasMany(VipLog::class, 'user_id', 'id')->orderByDesc('id');
+    }
+
+    function moneyLog()
+    {
+        return $this->hasMany(UserMoneyLog::class, 'user_id', 'id')->orderByDesc('id');
+    }
     
     
 }

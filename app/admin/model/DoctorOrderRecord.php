@@ -47,6 +47,7 @@ use plugin\admin\app\model\Base;
  * @property string $ordersn 订单编号
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\DoctorOrderRecordMedicine> $medicine
  * @property-read \app\admin\model\DoctorOrder|null $order
+ * @property-read \app\admin\model\User|null $user
  * @mixin \Eloquent
  */
 class DoctorOrderRecord extends Base
@@ -73,6 +74,11 @@ class DoctorOrderRecord extends Base
     function medicine()
     {
         return $this->hasMany(DoctorOrderRecordMedicine::class, 'record_id', 'id');
+    }
+
+    function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
     
     

@@ -5,6 +5,7 @@ namespace app\admin\controller;
 use app\admin\model\Admin;
 use plugin\admin\app\common\Util;
 use plugin\admin\app\model\AdminRole;
+use support\Db;
 use support\Request;
 use support\Response;
 use app\admin\model\Doctor;
@@ -70,21 +71,31 @@ class DoctorController extends Crud
             if ($admin) {
                 return $this->fail('用户名重复');
             }
-            $admin = Admin::create([
-                'avatar' => $avatar,
-                'username' => $username,
-                'password' => Util::passwordHash($password),
-                'nickname' => $name,
-            ]);
 
-            $admin_role = new AdminRole;
-            $admin_role->admin_id = $admin->id;
-            $admin_role->role_id = 3;
-            $admin_role->save();
-            $request->setParams('post',[
-                'admin_id' => $admin->id
-            ]);
-            return parent::insert($request);
+            Db::connection('plugin.admin.mysql')->beginTransaction();
+            try {
+                $admin = Admin::create([
+                    'avatar' => $avatar,
+                    'username' => $username,
+                    'password' => Util::passwordHash($password),
+                    'nickname' => $name,
+                ]);
+
+                $admin_role = new AdminRole;
+                $admin_role->admin_id = $admin->id;
+                $admin_role->role_id = 3;
+                $admin_role->save();
+                $request->setParams('post',[
+                    'admin_id' => $admin->id
+                ]);
+                $data = $this->insertInput($request);
+                $id = $this->doInsert($data);
+                Db::connection('plugin.admin.mysql')->commit();
+            } catch (\Throwable $e) {
+                Db::connection('plugin.admin.mysql')->rollback();
+                return $this->fail('提交失败');
+            }
+            return $this->json(0, 'ok', ['id' => $id]);
         }
         return view('doctor/insert');
     }

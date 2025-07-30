@@ -197,14 +197,18 @@ class DoctorController extends Base
         $pay_amount = $price - $discount_amount;
         $ordersn = Pay::generateOrderSn();
         #创建订单
-        $order = DoctorOrder::create([
+        $data = [
             'user_id' => $user->id,
             'doctor_id' => $doctor->id,
             'pay_amount' => $pay_amount,
             'price' => $price,
             'discount_amount' => $discount_amount,
             'ordersn' => $ordersn,
-        ]);
+        ];
+        if ($user->vip_level < 3) {
+            $data['schedule_id'] = $schedules->first()->id;
+        }
+        $order = DoctorOrder::create($data);
 
 
         #更改排班状态
