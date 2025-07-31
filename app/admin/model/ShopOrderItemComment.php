@@ -21,6 +21,7 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrderItemComment newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrderItemComment newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrderItemComment query()
+ * @property-read \app\admin\model\User|null $user
  * @mixin \Eloquent
  */
 class ShopOrderItemComment extends Base
@@ -51,6 +52,13 @@ class ShopOrderItemComment extends Base
         'created_at',
         'updated_at',
     ];
+
+    function user()
+    {
+        return $this->belongsTo(User::class,'user_id','id');
+    }
+
+
     
     
     

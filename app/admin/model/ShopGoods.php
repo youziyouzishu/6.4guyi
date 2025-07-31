@@ -28,6 +28,7 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopGoods normal()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopGoods query()
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\ShopGoodsSku> $sku
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\ShopOrderItemComment> $comment
  * @mixin \Eloquent
  */
 class ShopGoods extends Base
@@ -60,6 +61,11 @@ class ShopGoods extends Base
     function sku()
     {
         return $this->hasMany(ShopGoodsSku::class, 'goods_id', 'id');
+    }
+
+    function comment()
+    {
+        return $this->hasMany(ShopOrderItemComment::class, 'goods_id', 'id');
     }
 
     

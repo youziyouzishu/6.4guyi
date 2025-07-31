@@ -6,6 +6,7 @@ use plugin\admin\app\model\Base;
 
 
 /**
+ * 
  *
  * @property int $id 主键
  * @property int $order_id 订单
@@ -20,6 +21,8 @@ use plugin\admin\app\model\Base;
  * @property int $user_id 用户
  * @property int $cure_score 治疗效果:1=非常差,2=差,3=一般,4=好,5=非常好
  * @property int $manner_score 沟通态度:1=非常差,2=差,3=一般,4=好,5=非常好
+ * @property-read mixed $cure_score_text
+ * @property-read mixed $manner_score_text
  * @mixin \Eloquent
  */
 class DoctorOrderComment extends Base

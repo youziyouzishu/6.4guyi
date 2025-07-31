@@ -79,6 +79,8 @@ class ShopController extends Base
         return $this->success('成功', $goods);
     }
 
+
+
     /**
      * 商品详情
      * @param Request $request
@@ -87,8 +89,21 @@ class ShopController extends Base
     function getGoodsDetail(Request $request)
     {
         $id = $request->input('id');
-        $goods = ShopGoods::normal()->with(['sku'])->find($id);
+        $goods = ShopGoods::normal()->with(['sku'])->withCount(['comment'])->find($id);
         return $this->success('成功', $goods);
+    }
+
+    /**
+     * 获取商品评论
+     * @param Request $request
+     * @return Response
+     */
+    function getCommentList(Request $request)
+    {
+        $id = $request->input('id');
+        $limit = $request->input('limit', 10);
+        $rows = ShopOrderItemComment::with(['user'])->where('goods_id',$id)->orderByDesc('id')->paginate($limit)->items();
+        return $this->success('成功', $rows);
     }
 
     /**
@@ -590,7 +605,7 @@ class ShopController extends Base
             $refund->save();
         });
         #恢复主订单状态
-        if ($item->order->items->where('status', 1)->isEmpty()){
+        if ($item->order->items->where('status', 1)->isEmpty()) {
             $item->order->status = $item->order->before_status;
             $item->order->save();
         }
@@ -615,7 +630,7 @@ class ShopController extends Base
     function deliveryService(Request $request)
     {
         $id = $request->input('id');#item_id
-        $express_id = $request->input('express_id');
+        $express_name = $request->input('express_name');
         $express_no = $request->input('express_no');
         $refund_mark = $request->input('refund_mark');
         $images = $request->input('images');
@@ -624,15 +639,13 @@ class ShopController extends Base
             return $this->fail('订单状态异常');
         }
         $item->refund_express_no = $express_no;
-        $item->refund_express = Express::where('id', $express_id)->value('name');
+        $item->refund_express = $express_name;
         $item->refund_mark = $refund_mark;
         $item->status = 7;
         $item->refund_images = $images;
         $item->save();
         return $this->success('操作成功');
     }
-
-
 
 
 }

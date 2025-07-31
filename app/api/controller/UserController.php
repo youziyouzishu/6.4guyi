@@ -24,6 +24,7 @@ use Tinywan\Jwt\Exception\JwtRefreshTokenExpiredException;
 class UserController extends Base
 {
     protected array $noNeedLogin = ['getMobile'];
+
     function getUserInfo(Request $request)
     {
         $user_id = $request->post('user_id');
@@ -47,7 +48,7 @@ class UserController extends Base
 
         $userAttributes = $row->getAttributes();
         foreach ($data as $key => $value) {
-            if ($key == 'sex'){
+            if ($key == 'sex') {
                 $value = strval($value);
             }
             if (array_key_exists($key, $userAttributes) && (!empty($value) || $value == 0)) {
@@ -81,7 +82,7 @@ class UserController extends Base
         }
         $mobile = $ret->phone_info->phoneNumber;
 
-        return $this->success('成功',[
+        return $this->success('成功', [
             'mobile' => $mobile
         ]);
     }
@@ -174,7 +175,7 @@ class UserController extends Base
     }
 
     /**
-     * 充值
+     * 充值余额
      * @param Request $request
      * @return \support\Response
      */
@@ -192,7 +193,7 @@ class UserController extends Base
                     'pay_type' => $pay_type,
                 ]);
                 $result = Pay::pay($pay_type, $amount, $ordersn, '余额充值', 'recharge');
-            }catch (\Throwable $e){
+            } catch (\Throwable $e) {
                 Log::error('支付失败');
                 Log::error($e->getMessage());
                 return $this->fail('支付失败');
@@ -200,7 +201,7 @@ class UserController extends Base
         } else {
             return $this->fail('支付类型错误');
         }
-        return $this->success('成功',$result);
+        return $this->success('成功', $result);
     }
 
     /**
@@ -210,12 +211,12 @@ class UserController extends Base
      */
     function getMoneyLog(Request $request)
     {
-        $datetime = $request->post('datetime');
+        $date = $request->post('date');
         $status = $request->post('status'); #0=全部 1=支出，2=收入
-        $datetime = Carbon::parse($datetime);
+        $date = Carbon::parse($date);
         // 提取年份和月份
-        $year = $datetime->year;
-        $month = $datetime->month;
+        $year = $date->year;
+        $month = $date->month;
         $rows = UserMoneyLog::where('user_id', $request->user_id)
             ->when(!empty($status), function ($query) use ($status) {
                 if ($status == 1) {
@@ -236,7 +237,6 @@ class UserController extends Base
             });
         return $this->success('获取成功', $rows);
     }
-
 
 
 }

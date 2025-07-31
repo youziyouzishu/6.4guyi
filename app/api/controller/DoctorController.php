@@ -84,6 +84,11 @@ class DoctorController extends Base
         return $this->success('成功', $doctor);
     }
 
+    /**
+     * 获取评论列表
+     * @param Request $request
+     * @return \support\Response
+     */
     function getCommentList(Request $request)
     {
         $id = $request->input('id');
