@@ -46,6 +46,7 @@ use support\Db;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\VipLog> $vipLog
  * @property \Illuminate\Support\Carbon|null $last_consume_at 最后消费时间
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\UserMoneyLog> $moneyLog
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\UserFavorite> $favorites
  * @mixin \Eloquent
  */
 class User extends Base
@@ -144,6 +145,12 @@ class User extends Base
     {
         return $this->hasMany(UserMoneyLog::class, 'user_id', 'id')->orderByDesc('id');
     }
-    
+
+    public function favorites()
+    {
+        return $this->hasMany(UserFavorite::class, 'user_id', 'id');
+    }
+
+
     
 }

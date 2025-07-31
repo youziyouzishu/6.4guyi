@@ -32,6 +32,7 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrder withoutTrashed()
  * @property int|null $before_status 售后前状态
  * @property int $address_id 收货地址
+ * @property-read \app\admin\model\UserAddress|null $address
  * @mixin \Eloquent
  */
 class ShopOrder extends Base

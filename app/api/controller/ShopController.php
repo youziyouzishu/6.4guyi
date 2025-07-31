@@ -87,7 +87,15 @@ class ShopController extends Base
     function getGoodsDetail(Request $request)
     {
         $id = $request->input('id');
-        $goods = ShopGoods::normal()->with(['sku'])->withCount(['comment'])->find($id);
+        $user = $request->user();
+        $goods = ShopGoods::normal()
+            ->with(['sku'])
+            ->withExists([
+                'favoritedUsers as is_favorited' => function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                }
+            ])
+            ->withCount(['comment'])->find($id);
         return $this->success('成功', $goods);
     }
 

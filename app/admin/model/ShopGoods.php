@@ -29,6 +29,7 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopGoods query()
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\ShopGoodsSku> $sku
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\ShopOrderItemComment> $comment
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\User> $favoritedUsers
  * @mixin \Eloquent
  */
 class ShopGoods extends Base
@@ -66,6 +67,11 @@ class ShopGoods extends Base
     function comment()
     {
         return $this->hasMany(ShopOrderItemComment::class, 'goods_id', 'id');
+    }
+
+    public function favoritedUsers()
+    {
+        return $this->morphToMany(User::class, 'favoritable', UserFavorite::class);
     }
 
     
