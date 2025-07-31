@@ -2,11 +2,11 @@
 
 namespace app\admin\controller;
 
-use support\Request;
-use support\Response;
 use app\admin\model\ShopGoodsSku;
 use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
+use support\Request;
+use support\Response;
 
 /**
  * 商品规格 

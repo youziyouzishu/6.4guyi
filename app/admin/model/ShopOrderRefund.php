@@ -2,7 +2,6 @@
 
 namespace app\admin\model;
 
-use Illuminate\Database\Eloquent\SoftDeletes;
 use plugin\admin\app\model\Base;
 
 /**

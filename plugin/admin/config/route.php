@@ -14,8 +14,8 @@
 
 use plugin\admin\app\controller\AccountController;
 use plugin\admin\app\controller\DictController;
-use Webman\Route;
 use support\Request;
+use Webman\Route;
 
 Route::any('/app/admin/account/captcha/{type}', [AccountController::class, 'captcha']);
 

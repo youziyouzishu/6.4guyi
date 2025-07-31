@@ -3,14 +3,14 @@
 namespace app\admin\controller;
 
 use app\admin\model\Admin;
+use app\admin\model\Doctor;
 use plugin\admin\app\common\Util;
+use plugin\admin\app\controller\Crud;
 use plugin\admin\app\model\AdminRole;
 use support\Db;
+use support\exception\BusinessException;
 use support\Request;
 use support\Response;
-use app\admin\model\Doctor;
-use plugin\admin\app\controller\Crud;
-use support\exception\BusinessException;
 
 /**
  * 医师管理

@@ -5,8 +5,8 @@ namespace app\middleware;
 use ReflectionClass;
 use support\Request;
 use Tinywan\Jwt\JwtToken;
-use Webman\MiddlewareInterface;
 use Webman\Http\Response;
+use Webman\MiddlewareInterface;
 
 
 class ApiAuth implements MiddlewareInterface

@@ -5,8 +5,6 @@ namespace app\admin\model;
 use plugin\admin\app\model\Base;
 
 
-
-
 /**
  * 
  *

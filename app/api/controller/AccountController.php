@@ -5,9 +5,7 @@ namespace app\api\controller;
 use app\admin\model\User;
 use app\admin\model\VipLog;
 use app\api\basic\Base;
-use Carbon\Carbon;
 use EasyWeChat\MiniApp\Application;
-use plugin\admin\app\common\Util;
 use support\Request;
 use Tinywan\Jwt\JwtToken;
 

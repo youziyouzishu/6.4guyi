@@ -5,10 +5,8 @@ namespace app\api\controller;
 use app\admin\model\Banner;
 use app\admin\model\Version;
 use app\api\basic\Base;
-use plugin\admin\app\model\Dict;
 use plugin\admin\app\model\Option;
 use support\Request;
-use support\Response;
 
 class CommonController extends Base
 {

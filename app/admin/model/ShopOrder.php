@@ -60,7 +60,8 @@ class ShopOrder extends Base
         'pay_type',
         'total_goods_amount',
         'total_freight',
-        'mark'
+        'mark',
+        'address_id'
     ];
     protected $casts = [
         'pay_time' => 'datetime',
@@ -69,6 +70,11 @@ class ShopOrder extends Base
     function items()
     {
         return $this->hasMany(ShopOrderItem::class, 'order_id', 'id');
+    }
+
+    function address()
+    {
+        return $this->belongsTo(UserAddress::class, 'address_id', 'id');
     }
     
     

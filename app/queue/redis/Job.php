@@ -5,7 +5,6 @@ namespace app\queue\redis;
 use app\admin\model\DoctorOrder;
 use app\admin\model\ServiceOrder;
 use app\admin\model\ShopOrder;
-use Carbon\Carbon;
 use Webman\RedisQueue\Consumer;
 
 class Job implements Consumer

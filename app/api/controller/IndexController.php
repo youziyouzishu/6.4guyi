@@ -2,12 +2,7 @@
 
 namespace app\api\controller;
 
-use app\admin\model\Doctor;
-use app\admin\model\DoctorOrder;
-use app\admin\model\DoctorSchedule;
-use app\admin\model\User;
 use app\api\basic\Base;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
 use support\Request;
 

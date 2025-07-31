@@ -15,7 +15,6 @@ use Carbon\Carbon;
 use support\Db;
 use support\Log;
 use support\Request;
-use Webman\RedisQueue\Client;
 use Yansongda\Pay\Pay;
 
 class NotifyController extends Base

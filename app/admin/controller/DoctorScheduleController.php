@@ -2,13 +2,12 @@
 
 namespace app\admin\controller;
 
-use app\admin\model\Doctor;
-use Carbon\Carbon;
-use support\Request;
-use support\Response;
 use app\admin\model\DoctorSchedule;
+use Carbon\Carbon;
 use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
+use support\Request;
+use support\Response;
 
 /**
  * 排班管理

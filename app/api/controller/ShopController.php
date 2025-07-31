@@ -16,7 +16,6 @@ use app\admin\model\ShopOrderRefund;
 use app\admin\model\User;
 use app\api\basic\Base;
 use app\api\service\Pay;
-use support\Redis;
 use support\Request;
 use support\Response;
 use Webman\RedisQueue\Client;
@@ -80,7 +79,6 @@ class ShopController extends Base
     }
 
 
-
     /**
      * 商品详情
      * @param Request $request
@@ -102,7 +100,7 @@ class ShopController extends Base
     {
         $id = $request->input('id');
         $limit = $request->input('limit', 10);
-        $rows = ShopOrderItemComment::with(['user'])->where('goods_id',$id)->orderByDesc('id')->paginate($limit)->items();
+        $rows = ShopOrderItemComment::with(['user'])->where('goods_id', $id)->orderByDesc('id')->paginate($limit)->items();
         return $this->success('成功', $rows);
     }
 
@@ -236,6 +234,7 @@ class ShopController extends Base
      */
     function createOrder(Request $request)
     {
+        $address_id = $request->input('address_id');
         $itemsInput = $request->input('items', []);
         $mark = $request->input('mark');
         if (empty($itemsInput)) {
@@ -255,7 +254,7 @@ class ShopController extends Base
             if ($sku->stock < $num) {
                 return $this->fail("【{$sku->goods->name}】库存不足");
             }
-            $goods_amount = bcmul($sku->goods->discount_price, $num, 2);
+            $goods_amount = bcmul($sku->goods->price, $num, 2);
             $freight = $sku->goods->freight;
             $pay_amount = bcadd((string)$goods_amount, (string)$freight, 2);
             $total_freight += $freight;
@@ -264,7 +263,7 @@ class ShopController extends Base
                 'sku_id' => $sku->id,
                 'goods_id' => $sku->goods_id,
                 'goods_name' => $sku->goods->name,
-                'price' => $sku->goods->discount_price,
+                'price' => $sku->goods->price,
                 'num' => $num,
                 'goods_amount' => $goods_amount,
                 'pay_amount' => $pay_amount,
@@ -277,6 +276,7 @@ class ShopController extends Base
 
         //创建订单
         $order = ShopOrder::create([
+            'address_id' => $address_id,
             'user_id' => $request->user_id,
             'ordersn' => $ordersn,
             'total_pay_amount' => $total_price,

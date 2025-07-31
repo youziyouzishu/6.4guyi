@@ -3,12 +3,12 @@
 namespace plugin\admin\app\common;
 
 use app\process\Monitor;
-use Throwable;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Builder;
 use plugin\admin\app\model\Option;
-use support\exception\BusinessException;
 use support\Db;
+use support\exception\BusinessException;
+use Throwable;
 use Workerman\Timer;
 use Workerman\Worker;
 

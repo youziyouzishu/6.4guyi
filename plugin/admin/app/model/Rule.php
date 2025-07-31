@@ -2,8 +2,6 @@
 
 namespace plugin\admin\app\model;
 
-use plugin\admin\app\model\Base;
-
 /**
  * @property integer $id 主键(主键)
  * @property string $title 标题

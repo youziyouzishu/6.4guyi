@@ -1,11 +1,10 @@
 #!/usr/bin/env php
 <?php
 
+use Dotenv\Dotenv;
 use Webman\Config;
 use Webman\Console\Command;
 use Webman\Console\Util;
-use support\Container;
-use Dotenv\Dotenv;
 
 if (!Phar::running()) {
     chdir(__DIR__);

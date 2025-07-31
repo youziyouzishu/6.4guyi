@@ -3,15 +3,15 @@
 namespace app\admin\controller;
 
 use app\admin\model\DoctorOrder;
+use app\admin\model\DoctorOrderRecord;
 use app\admin\model\DoctorOrderRecordMedicine;
 use app\admin\model\Medicine;
 use app\admin\model\MedicineWeight;
 use app\api\service\Pay;
-use support\Request;
-use support\Response;
-use app\admin\model\DoctorOrderRecord;
 use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
+use support\Request;
+use support\Response;
 
 /**
  * 处方 

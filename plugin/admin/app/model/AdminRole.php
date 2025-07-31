@@ -2,8 +2,6 @@
 
 namespace plugin\admin\app\model;
 
-use plugin\admin\app\model\Base;
-
 /**
  * @property integer $id ID(主键)
  * @property string $admin_id 管理员id

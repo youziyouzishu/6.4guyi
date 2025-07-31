@@ -2,7 +2,6 @@
 
 namespace app\api\service;
 
-use support\exception\BusinessException;
 use Yansongda\Artful\Rocket;
 use Yansongda\Supports\Collection;
 

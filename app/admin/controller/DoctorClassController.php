@@ -2,12 +2,11 @@
 
 namespace app\admin\controller;
 
-use plugin\admin\app\common\Tree;
-use support\Request;
-use support\Response;
 use app\admin\model\DoctorClass;
 use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
+use support\Request;
+use support\Response;
 
 /**
  * 医师分类 

@@ -2,11 +2,11 @@
 
 namespace app\admin\controller;
 
-use support\Request;
-use support\Response;
 use app\admin\model\Banner;
 use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
+use support\Request;
+use support\Response;
 
 /**
  * 轮播图 
