@@ -199,16 +199,18 @@ class ShopController extends Base
             if ($sku->stock < $num) {
                 return $this->fail("【{$sku->goods->name}】库存不足");
             }
-            $goods_amount = bcmul($sku->goods->discount_price, $num, 2);
+            $goods_amount = bcmul($sku->goods->price, $num, 2);
             $freight = $sku->goods->freight;
             $pay_amount = bcadd((string)$goods_amount, (string)$freight, 2);
             $total_freight += $freight;
             $total_goods_price = bcadd((string)$total_goods_price, $goods_amount, 2);
             $items[] = [
+                'goods' => $sku->goods,
+                'sku' => $sku,
                 'sku_id' => $sku->id,
                 'goods_id' => $sku->goods_id,
                 'goods_name' => $sku->goods->name,
-                'price' => $sku->goods->discount_price,
+                'price' => $sku->goods->price,
                 'num' => $num,
                 'goods_amount' => $goods_amount,
                 'pay_amount' => $pay_amount,
