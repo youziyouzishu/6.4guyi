@@ -14,7 +14,6 @@
             <div class="mainBox">
                 <div class="main-container mr-5">
 
-
                     <div class="layui-form-item">
                         <label class="layui-form-label required">日期</label>
                         <div class="layui-input-block">
@@ -35,11 +34,18 @@
                             <input type="text" name="end_time" id="end_time" required lay-verify="required" autocomplete="off" class="layui-input">
                         </div>
                     </div>
-                    
+
                     <div class="layui-form-item">
                         <label class="layui-form-label required">间隔分钟</label>
                         <div class="layui-input-block">
                             <input type="number" name="slot_duration" value="" required lay-verify="required" class="layui-input">
+                        </div>
+                    </div>
+                    
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">余量</label>
+                        <div class="layui-input-block">
+                            <input type="number" name="num" value="" required lay-verify="required" class="layui-input">
                         </div>
                     </div>
                     
@@ -67,51 +73,26 @@
         
         <script>
 
-            let doctor_id = layui.url().search['doctor_id'];
-
+            let service_id = layui.url().search['service_id'];
             // 相关接口
-            const INSERT_API = "/admin/doctor-schedule/insert";
-
-            layui.use(["jquery", "xmSelect", "popup"], function() {
-                let value = layui.$("#doctor_id").attr("value");
+            const INSERT_API = "/admin/service-schedule/insert";
+            
+            // 字段 项目 service_id
+            layui.use(["jquery", "xmSelect"], function() {
+                let value = layui.$("#service_id").attr("value");
                 let initValue = value ? value.split(",") : [];
-                window.selectUser = layui.xmSelect.render({
-                    el: '#doctor_id',
-                    name: "doctor_id",
-                    //配置搜索
+                layui.xmSelect.render({
+                    el: "#service_id",
+                    name: "service_id",
                     filterable: true,
-                    //配置远程分页
-                    clickClose: true,
-                    paging: true,
-                    pageRemote: true,
-                    radio: true,
-                    remoteSearch:true,
                     initValue: initValue,
-                    template({ item, sels, name, value }){
-                        return name + '<span style="position: absolute; right: 10px; color: #8799a3">'+value+'</span>'
-                    },
-                    prop: {
-                        name: 'name',
-                        value: 'id',
-                    },
-                    //数据处理
-                    remoteMethod: function(val, cb, show, pageIndex){
-                        layui.$.ajax({
-                            url: "/admin/doctor/select",
-                            dataType: "json",
-                            data: {
-                                name: ['like',val],
-                                page: pageIndex,
-                            },
-                            success: function (res) {
-                                //回调需要两个参数, 第一个: 数据数组, 第二个: 总页码
-                                cb(res.data,Math.ceil(res.count / 10))
-                            }
-                        });
-                    }
+                    model: {"icon":"hidden","label":{"type":"text"}},
+                    clickClose: true,
+                    radio: true,
+                    layVerify: "required",
                 })
             });
-
+            
             // 字段 日期 date
             layui.use(["laydate"], function() {
                 layui.laydate.render({
@@ -119,7 +100,7 @@
             
                 });
             })
-            
+
             // 字段 上班时间 start_time
             layui.use(["laydate"], function() {
                 layui.laydate.render({
@@ -128,7 +109,7 @@
                     format: 'H:m'
                 });
             })
-            
+
             // 字段 结束时间 end_time
             layui.use(["laydate"], function() {
                 layui.laydate.render({
@@ -137,6 +118,23 @@
                     format: 'H:m'
                 });
             })
+            
+            // 字段 状态:1=可预约,2=已满预约,3=休息 status
+            layui.use(["jquery", "xmSelect"], function() {
+                let value = layui.$("#status").attr("value");
+                let initValue = value ? value.split(",") : [];
+                layui.xmSelect.render({
+                    el: "#status",
+                    name: "status",
+                    filterable: true,
+                    initValue: initValue,
+                    data: [{"value":"1","name":"可预约"},{"value":"2","name":"已满预约"},{"value":"3","name":"休息"}],
+                    model: {"icon":"hidden","label":{"type":"text"}},
+                    clickClose: true,
+                    radio: true,
+                    layVerify: "required",
+                })
+            });
             
             //提交事件
             layui.use(["form", "popup"], function () {
@@ -150,7 +148,7 @@
                     identity: [/(^$)|(^\d{15}$)|(^\d{17}(x|X|\d)$)/, "请输入正确的身份证号"]
                 });
                 layui.form.on("submit(save)", function (data) {
-                    data.field.doctor_id = doctor_id;
+                    data.field.service_id = service_id;
                     layui.$.ajax({
                         url: INSERT_API,
                         type: "POST",

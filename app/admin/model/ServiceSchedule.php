@@ -6,7 +6,7 @@ use plugin\admin\app\model\Base;
 
 
 /**
- * 
+ *
  *
  * @property int $id 主键
  * @property int $service_id 项目
@@ -58,7 +58,7 @@ class ServiceSchedule extends Base
 
 
 
-    
-    
-    
+
+
+
 }

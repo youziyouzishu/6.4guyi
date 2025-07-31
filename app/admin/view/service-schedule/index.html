@@ -15,16 +15,9 @@
                 <form class="layui-form top-search-from">
                     
                     <div class="layui-form-item">
-                        <label class="layui-form-label">主键</label>
+                        <label class="layui-form-label">状态</label>
                         <div class="layui-input-block">
-                            <input type="number" name="id" value="" class="layui-input">
-                        </div>
-                    </div>
-
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">医师</label>
-                        <div class="layui-input-block">
-                            <div id="doctor_id" name="doctor_id" value=""></div>
+                            <div name="status" id="status" value="" ></div>
                         </div>
                     </div>
                     
@@ -65,18 +58,18 @@
 
         <!-- 表格顶部工具栏 -->
         <script type="text/html" id="table-toolbar">
-            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="admin.doctorschedule.insert">
+            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="admin.serviceschedule.insert">
                 <i class="layui-icon layui-icon-add-1"></i>新增排班
             </button>
-            <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="admin.doctorschedule.delete">
+            <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="admin.serviceschedule.delete">
                 <i class="layui-icon layui-icon-delete"></i>删除
             </button>
         </script>
 
         <!-- 表格行工具栏 -->
         <script type="text/html" id="table-bar">
-            <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="admin.doctorschedule.update">编辑</button>
-            <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="admin.doctorschedule.delete">删除</button>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="admin.serviceschedule.update">编辑</button>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="admin.serviceschedule.delete">删除</button>
         </script>
 
         <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
@@ -86,56 +79,32 @@
         
         <script>
 
-            let doctor_id = layui.url().search['doctor_id'];
+            let service_id = layui.url().search['service_id'];
             // 相关常量
             const PRIMARY_KEY = "id";
-            const SELECT_API = "/admin/doctor-schedule/select?doctor_id="+doctor_id;
-            const UPDATE_API = "/admin/doctor-schedule/update?doctor_id="+doctor_id;
-            const DELETE_API = "/admin/doctor-schedule/delete?doctor_id="+doctor_id;
-            const INSERT_URL = "/admin/doctor-schedule/insert?doctor_id="+doctor_id;
-            const UPDATE_URL = "/admin/doctor-schedule/update?doctor_id="+doctor_id;
+            const SELECT_API = "/admin/service-schedule/select?service_id="+service_id;
+            const UPDATE_API = "/admin/service-schedule/update?service_id="+service_id;
+            const DELETE_API = "/admin/service-schedule/delete?service_id="+service_id;
+            const INSERT_URL = "/admin/service-schedule/insert?service_id="+service_id;
+            const UPDATE_URL = "/admin/service-schedule/update?service_id="+service_id;
 
-            layui.use(["jquery", "xmSelect", "popup"], function() {
-                let value = layui.$("#doctor_id").attr("value");
+            
+            // 字段 状态:1=可预约,2=已满预约,3=休息 status
+            layui.use(["jquery", "xmSelect"], function() {
+                let value = layui.$("#status").attr("value");
                 let initValue = value ? value.split(",") : [];
-                window.selectUser = layui.xmSelect.render({
-                    el: '#doctor_id',
-                    name: "doctor_id",
-                    //配置搜索
+                layui.xmSelect.render({
+                    el: "#status",
+                    name: "status",
                     filterable: true,
-                    //配置远程分页
-                    clickClose: true,
-                    paging: true,
-                    pageRemote: true,
-                    radio: true,
-                    remoteSearch:true,
                     initValue: initValue,
-                    template({ item, sels, name, value }){
-                        return name + '<span style="position: absolute; right: 10px; color: #8799a3">'+value+'</span>'
-                    },
-                    prop: {
-                        name: 'name',
-                        value: 'id',
-                    },
-                    //数据处理
-                    remoteMethod: function(val, cb, show, pageIndex){
-                        layui.$.ajax({
-                            url: "/admin/doctor/select",
-                            dataType: "json",
-                            data: {
-                                name: ['like',val],
-                                page: pageIndex,
-                            },
-                            success: function (res) {
-                                //回调需要两个参数, 第一个: 数据数组, 第二个: 总页码
-                                cb(res.data,Math.ceil(res.count / 10))
-                            }
-                        });
-                    }
+                    data: [{"value":"1","name":"可预约"},{"value":"2","name":"已满预约"},{"value":"3","name":"休息"}],
+                    model: {"icon":"hidden","label":{"type":"text"}},
+                    clickClose: true,
+                    radio: true,
                 })
             });
-
-
+            
             // 字段 创建时间 created_at
             layui.use(["laydate"], function() {
                 layui.laydate.render({
@@ -161,13 +130,18 @@
 					},{
 						title: "主键",align: "center",
 						field: "id",
-						sort: true,
 					},{
-						title: "医生",align: "center",
-						field: "doctor_id",
-                        templet: function(d){
-                            return d.doctor?d.doctor.name:"";
-                        }
+						title: "项目",align: "center",
+						field: "service_id",
+						templet: function (d) {
+							let field = "service_id";
+							if (typeof d[field] == "undefined") return "";
+							let items = [];
+							layui.each((d[field] + "").split(","), function (k , v) {
+								items.push(apiResults[field][v] || v);
+							});
+							return util.escape(items.join(","));
+						}
 					},{
 						title: "日期",align: "center",
 						field: "date",
@@ -178,18 +152,21 @@
 						title: "结束时间",align: "center",
 						field: "end_time",
 					},{
-                        title: "状态",align: "center",
-                        field: "status",
-                        templet: function (d) {
-                            let field = "status";
-                            if (typeof d[field] == "undefined") return "";
-                            let items = [];
-                            layui.each((d[field] + "").split(","), function (k , v) {
-                                items.push(apiResults[field][v] || v);
-                            });
-                            return util.escape(items.join(","));
-                        }
-                    },{
+						title: "状态",align: "center",
+						field: "status",
+						templet: function (d) {
+							let field = "status";
+							if (typeof d[field] == "undefined") return "";
+							let items = [];
+							layui.each((d[field] + "").split(","), function (k , v) {
+								items.push(apiResults[field][v] || v);
+							});
+							return util.escape(items.join(","));
+						}
+					},{
+						title: "余量",align: "center",
+						field: "num",
+					},{
 						title: "创建时间",align: "center",
 						field: "created_at",
 						sort: true,
@@ -224,11 +201,11 @@
 				        layer.photos({photos: 'div[lay-id="data-table"]', anim: 5});
 				    }
 				});
-
-                // 获取表格中下拉或树形组件数据
-                let apiResults = {};
-                apiResults["status"] = {"1":"可预约","2":"已预约","3":"休息"};
-
+				
+				// 获取表格中下拉或树形组件数据
+				let apiResults = {};
+				apiResults["service_id"] = [];
+				apiResults["status"] = {"1":"可预约","2":"已满预约","3":"休息"};
                 // 编辑或删除行事件
                 table.on("tool(data-table)", function(obj) {
                     if (obj.event === "remove") {
@@ -262,7 +239,6 @@
                 
                 // 表格顶部搜索重置事件
                 form.on("submit(table-reset)", function(data) {
-                    layui.xmSelect.get('#doctor_id', true).reset();
                     table.reload("data-table", {
                         where: []
                     })
