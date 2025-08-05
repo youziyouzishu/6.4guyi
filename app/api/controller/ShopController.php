@@ -55,6 +55,7 @@ class ShopController extends Base
         $class_id = $request->input('class_id');
         $order = $request->input('order');#1综合  2销量 3价格升序 4价格降序
         $goods = ShopGoods::normal()
+            ->with(['items'])
             ->when($keyword, function ($query) use ($keyword) {
                 return $query->where('name', 'like', '%' . $keyword . '%');
             })

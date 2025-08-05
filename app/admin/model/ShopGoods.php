@@ -30,6 +30,7 @@ use plugin\admin\app\model\Base;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\ShopGoodsSku> $sku
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\ShopOrderItemComment> $comment
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\User> $favoritedUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\ShopOrderItem> $items
  * @mixin \Eloquent
  */
 class ShopGoods extends Base
@@ -72,6 +73,11 @@ class ShopGoods extends Base
     public function favoritedUsers()
     {
         return $this->morphToMany(User::class, 'favoritable', UserFavorite::class);
+    }
+
+    function items()
+    {
+        return $this->hasMany(ShopOrderItem::class, 'goods_id', 'id');
     }
 
     

@@ -64,6 +64,7 @@ class DoctorScheduleController extends Crud
             $start_time = $request->post('start_time');
             $end_time = $request->post('end_time');
             $slot_duration = $request->post('slot_duration');
+            $rest_duration = $request->post('rest_duration');
             $doctor_id = $request->post('doctor_id');
             $date = Carbon::parse($date);
             $start_time = $date->copy()->setTimeFromTimeString($start_time);
@@ -83,21 +84,38 @@ class DoctorScheduleController extends Crud
             }
 
 
-            $slots = collect();
-            while ($start_time <= $end_time) {
-                $slots->push($start_time->toDateTimeString());
-                $start_time->addMinutes((int)$slot_duration);
+            // 主循环排班 + 休息
+            $slots = [];
+
+            $current = $start_time->copy();
+            while (true) {
+                $slot_start = $current->copy();
+                $slot_end = $current->copy()->addMinutes((int)$slot_duration);
+
+                if ($slot_end > $end_time) {
+                    break;
+                }
+
+                $slots[] = [
+                    'start_time' => $slot_start->toDateTimeString(),
+                    'end_time' => $slot_end->toDateTimeString(),
+                ];
+
+                // 下一个 slot 开始时间：工作结束后再加上休息时间
+                $current = $slot_end->copy()->addMinutes((int)$rest_duration);
             }
-            for ($i = 0; $i < $slots->count() - 1; $i++) {
-                $data = [
+
+            // 批量插入
+            foreach ($slots as $slot) {
+                DoctorSchedule::create([
                     'doctor_id' => $doctor_id,
                     'date' => $date->toDateString(),
-                    'start_time' => $slots[$i],
-                    'end_time' => $slots[$i + 1],
+                    'start_time' => $slot['start_time'],
+                    'end_time' => $slot['end_time'],
                     'status' => 1,
-                ];
-                DoctorSchedule::create($data);
+                ]);
             }
+
             return $this->success();
         }
         return view('doctor-schedule/insert');
