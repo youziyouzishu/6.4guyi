@@ -34,6 +34,7 @@ use plugin\admin\app\model\Base;
  * @property string|null $refund_express 退货公司
  * @property string|null $refund_mark 退货备注
  * @property string|null $refund_images 退货照片
+ * @property-read \app\admin\model\ShopGoodsSku|null $sku
  * @mixin \Eloquent
  */
 class ShopOrderItem extends Base
@@ -78,6 +79,11 @@ class ShopOrderItem extends Base
     function order()
     {
         return $this->belongsTo(ShopOrder::class, 'order_id', 'id');
+    }
+
+    function sku()
+    {
+        return $this->belongsTo(ShopGoodsSku::class, 'sku_id', 'id');
     }
 
 

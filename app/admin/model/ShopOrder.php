@@ -12,7 +12,6 @@ use plugin\admin\app\model\Base;
  * @property int $id 主键
  * @property int $user_id 用户
  * @property string $ordersn 订单编号
- * @property int $status 状态:0=待支付,1=已支付,2=交易关闭,3=待收货,4=待评价,5=已完成
  * @property string $total_pay_amount 支付金额
  * @property int $pay_type 支付方式:1=微信,2=余额
  * @property string $total_goods_amount 商品金额
@@ -33,6 +32,7 @@ use plugin\admin\app\model\Base;
  * @property int|null $before_status 售后前状态
  * @property int $address_id 收货地址
  * @property-read \app\admin\model\UserAddress|null $address
+ * @property int $status 状态:0=待付款,1=待发货,2=交易关闭,3=待收货,4=待评价,5=已完成,6=售后中
  * @mixin \Eloquent
  */
 class ShopOrder extends Base
@@ -68,6 +68,8 @@ class ShopOrder extends Base
         'pay_time' => 'datetime',
     ];
 
+    protected $appends = ['status_text'];
+
     function items()
     {
         return $this->hasMany(ShopOrderItem::class, 'order_id', 'id');
@@ -76,6 +78,30 @@ class ShopOrder extends Base
     function address()
     {
         return $this->belongsTo(UserAddress::class, 'address_id', 'id');
+    }
+
+    /**
+     * 获取状态列表
+     * @return string[]
+     */
+    public function getStatusList()
+    {
+        return [
+            0 => '待付款',
+            1 => '待发货',
+            2 => '交易关闭',
+            3 => '待收货',
+            4 => '待评价',
+            5 => '已完成',
+            6 => '售后中',
+        ];
+    }
+
+    function getStatusTextAttribute($value)
+    {
+        $value = $value ? $value : $this->status;
+        $list = $this->getStatusList();
+        return $list[$value]??'';
     }
     
     
