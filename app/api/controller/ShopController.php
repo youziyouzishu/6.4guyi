@@ -357,8 +357,11 @@ class ShopController extends Base
     function getOrderList(Request $request)
     {
         $status = $request->input('status');#订单状态:0=全部,1=待付款,2=待发货,3=待收货,4=已完成,5=售后
-        if (in_array($status, [0, 1, 2, 3, 4])) {
+
             $orders = ShopOrder::where('user_id', $request->user_id)
+                ->with(['items'=>function ($query) {
+                    $query->with(['sku','goods']);
+                }])
                 ->when(!empty($status), function ($query) use ($status) {
                     if ($status == 1) {
                         $query->where('status', 0);
@@ -372,16 +375,13 @@ class ShopController extends Base
                     if ($status == 4) {
                         $query->where('status', 5);
                     }
+                    if ($status == 5) {
+                        $query->where('status', 6);
+                    }
                 })
                 ->orderBy('id', 'desc')
                 ->paginate()
                 ->items();
-        } else {
-            $orders = ShopOrder::where('user_id', $request->user_id)
-                ->orderBy('id', 'desc')
-                ->paginate()
-                ->items();
-        }
 
         return $this->success('成功', $orders);
     }
@@ -394,7 +394,9 @@ class ShopController extends Base
     function getOrderDetail(Request $request)
     {
         $id = $request->input('id');
-        $order = ShopOrder::where('user_id', $request->user_id)->findOrFail($id);
+        $order = ShopOrder::where('user_id', $request->user_id)->with(['items'=>function ($query) {
+            $query->with(['sku','goods']);
+        }])->findOrFail($id);
         return $this->success('成功', $order);
     }
 
