@@ -205,8 +205,8 @@ class UserController extends Base
      */
     function getMoneyLog(Request $request)
     {
-        $date = $request->post('date');
-        $status = $request->post('status'); #0=全部 1=支出，2=收入
+        $date = $request->input('date');
+        $status = $request->input('status'); #0=全部 1=支出，2=收入
         $date = Carbon::parse($date);
         // 提取年份和月份
         $year = $date->year;
@@ -222,8 +222,7 @@ class UserController extends Base
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->latest()
-            ->paginate()
-            ->getCollection()
+            ->get()
             ->each(function ($item) {
                 if ($item->money > 0) {
                     $item->money = '+' . $item->money;

@@ -40,14 +40,14 @@ class FavoriteController extends Base
             // 已收藏 -> 取消收藏
             $user->favorites()
                 ->where('favoritable_id', $id)
-                ->where('favoritable_type', $type)
+                ->where('favoritable_type', $modelClass)
                 ->delete();
             $result = false;
         } else {
             // 未收藏 -> 添加收藏
             $user->favorites()->create([
                 'favoritable_id' => $id,
-                'favoritable_type' => $type
+                'favoritable_type' => $modelClass
             ]);
             $result = true;
         }

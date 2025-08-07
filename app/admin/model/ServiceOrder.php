@@ -32,6 +32,7 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceOrder newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceOrder query()
  * @property int $is_assess 是否评价:0=否,1=是
+ * @property string $mobile 手机号
  * @mixin \Eloquent
  */
 class ServiceOrder extends Base
@@ -65,7 +66,8 @@ class ServiceOrder extends Base
         'create_time',
         'update_time',
         'schedule_id',
-        'pay_time'
+        'pay_time',
+        'mobile',
     ];
 
     protected $casts = [

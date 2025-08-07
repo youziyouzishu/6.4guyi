@@ -55,8 +55,8 @@ class ShopController extends Base
         $class_id = $request->input('class_id');
         $order = $request->input('order');#1综合  2销量 3价格升序 4价格降序
         $goods = ShopGoods::normal()
-            ->with(['items'=>function ($query) {
-                $query->with(['sku','goods']);
+            ->with(['items' => function ($query) {
+                $query->with(['sku', 'goods']);
             }])
             ->when($keyword, function ($query) use ($keyword) {
                 return $query->where('name', 'like', '%' . $keyword . '%');
@@ -162,7 +162,14 @@ class ShopController extends Base
      */
     function indexCart(Request $request)
     {
-        $carts = ShopCart::where('user_id', $request->user_id)->with(['sku'])->get();
+        $carts = ShopCart::where('user_id', $request->user_id)->with(['sku.goods'])->get();
+        $carts->each(function ($cart) {
+            if ($cart->sku && $cart->sku->goods) {
+                $cart->goods = $cart->sku->goods;
+            } else {
+                $cart->goods = null;
+            }
+        });
         return $this->success('成功', $carts);
     }
 
@@ -358,30 +365,30 @@ class ShopController extends Base
     {
         $status = $request->input('status');#订单状态:0=全部,1=待付款,2=待发货,3=待收货,4=已完成,5=售后
 
-            $orders = ShopOrder::where('user_id', $request->user_id)
-                ->with(['items'=>function ($query) {
-                    $query->with(['sku','goods']);
-                }])
-                ->when(!empty($status), function ($query) use ($status) {
-                    if ($status == 1) {
-                        $query->where('status', 0);
-                    }
-                    if ($status == 2) {
-                        $query->where('status', 1);
-                    }
-                    if ($status == 3) {
-                        $query->where('status', 3);
-                    }
-                    if ($status == 4) {
-                        $query->where('status', 5);
-                    }
-                    if ($status == 5) {
-                        $query->where('status', 6);
-                    }
-                })
-                ->orderBy('id', 'desc')
-                ->paginate()
-                ->items();
+        $orders = ShopOrder::where('user_id', $request->user_id)
+            ->with(['items' => function ($query) {
+                $query->with(['sku', 'goods']);
+            }])
+            ->when(!empty($status), function ($query) use ($status) {
+                if ($status == 1) {
+                    $query->where('status', 0);
+                }
+                if ($status == 2) {
+                    $query->where('status', 1);
+                }
+                if ($status == 3) {
+                    $query->where('status', 3);
+                }
+                if ($status == 4) {
+                    $query->where('status', 5);
+                }
+                if ($status == 5) {
+                    $query->where('status', 6);
+                }
+            })
+            ->orderBy('id', 'desc')
+            ->paginate()
+            ->items();
 
         return $this->success('成功', $orders);
     }
@@ -394,9 +401,12 @@ class ShopController extends Base
     function getOrderDetail(Request $request)
     {
         $id = $request->input('id');
-        $order = ShopOrder::where('user_id', $request->user_id)->with(['items'=>function ($query) {
-            $query->with(['sku','goods']);
-        }])->findOrFail($id);
+        $order = ShopOrder::where('user_id', $request->user_id)
+            ->with(['items' => function ($query) {
+                $query->with(['sku', 'goods']);
+            },'address'])
+            ->findOrFail($id);
+        $order->setAttribute('expire_time',$order->created_at->addMinutes(15)->timestamp);
         return $this->success('成功', $order);
     }
 

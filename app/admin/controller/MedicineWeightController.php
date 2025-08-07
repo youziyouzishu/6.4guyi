@@ -19,6 +19,8 @@ class MedicineWeightController extends Crud
      */
     protected $model = null;
 
+    protected $noNeedAuth = ['select'];
+
     /**
      * 构造函数
      * @return void

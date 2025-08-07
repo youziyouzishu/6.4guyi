@@ -7,10 +7,10 @@ use app\admin\model\ServiceOrder;
 use app\admin\model\ServiceSchedule;
 use app\admin\model\User;
 use app\api\basic\Base;
+use app\api\service\Pay;
 use Carbon\Carbon;
 use support\Request;
 use Webman\RedisQueue\Client;
-use Yansongda\Pay\Pay;
 
 class ServiceController extends Base
 {
@@ -36,7 +36,11 @@ class ServiceController extends Base
     function getServiceDetail(Request $request)
     {
         $id = $request->input('id');
-        $row = Service::normal()->find($id);
+        $row = Service::normal()->withExists([
+            'favoritedByUser as is_favorited' => function ($query) use ($request) {
+                $query->where('user_id', $request->user_id);
+            }
+        ])->find($id);
         return $this->success('成功', $row);
     }
 
@@ -113,6 +117,7 @@ class ServiceController extends Base
     {
         $id = $request->input('id');
         $schedule_ids = $request->input('schedule_ids');//预约时间
+        $mobile = $request->input('mobile');
         $schedule_ids = explode(',', $schedule_ids);
         $service = Service::normal()->find($id);
         if (!$service) {
@@ -154,6 +159,7 @@ class ServiceController extends Base
             'price' => $price,
             'discount_amount' => $discount_amount,
             'ordersn' => $ordersn,
+            'mobile' => $mobile,
         ]);
 
 

@@ -86,7 +86,8 @@ class DoctorOrderRecordController extends Crud
                 DoctorOrderRecordMedicine::create([
                     'record_id' => $id,
                     'medicine_id' => $item['medicine_id'],
-                    'weight_id' => $item['weight_id']
+                    'weight_id' => $item['weight_id'],
+                    'price' => $item['price'],
                 ]);
             }
             return $this->json(0, 'ok', ['id' => $id]);

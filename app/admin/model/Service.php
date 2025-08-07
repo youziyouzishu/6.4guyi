@@ -28,6 +28,7 @@ use plugin\admin\app\model\Base;
  * @property string $lng 经度
  * @property string $open 营业时间
  * @property string $mobile 手机号
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\UserFavorite> $favoritedByUser
  * @mixin \Eloquent
  */
 class Service extends Base
@@ -50,6 +51,13 @@ class Service extends Base
     {
         return $query->where('status', 1);
     }
+
+    public function favoritedByUser()
+    {
+        return $this->morphMany(UserFavorite::class, 'favoritable');
+    }
+
+
 
 
 

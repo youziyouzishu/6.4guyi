@@ -33,6 +33,7 @@ use plugin\admin\app\model\Base;
  * @property int $address_id 收货地址
  * @property-read \app\admin\model\UserAddress|null $address
  * @property int $status 状态:0=待付款,1=待发货,2=交易关闭,3=待收货,4=待评价,5=已完成,6=售后中
+ * @property-read mixed $status_text
  * @mixin \Eloquent
  */
 class ShopOrder extends Base
