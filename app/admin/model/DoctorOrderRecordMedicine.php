@@ -17,6 +17,8 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorOrderRecordMedicine newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorOrderRecordMedicine query()
  * @property string $price 克价
+ * @property-read \app\admin\model\Medicine|null $medicine
+ * @property-read \app\admin\model\MedicineWeight|null $weight
  * @mixin \Eloquent
  */
 class DoctorOrderRecordMedicine extends Base
@@ -44,6 +46,17 @@ class DoctorOrderRecordMedicine extends Base
         'record_id',
         'price',
     ];
+
+
+    public function medicine()
+    {
+        return $this->belongsTo(Medicine::class, 'medicine_id', 'id');
+    }
+
+    public function weight()
+    {
+        return $this->belongsTo(MedicineWeight::class, 'weight_id', 'id');
+    }
     
     
     

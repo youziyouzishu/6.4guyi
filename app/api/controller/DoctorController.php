@@ -404,7 +404,9 @@ class DoctorController extends Base
     function getHealthDetail(Request $request)
     {
         $id = $request->input('id');
-        $order = DoctorOrderRecord::with(['order', 'medicine'])->find($id);
+        $order = DoctorOrderRecord::with(['order', 'medicine'=>function ($query) {
+            $query->with(['weight','medicine']);
+        }])->find($id);
         return $this->success('成功', $order);
     }
 
