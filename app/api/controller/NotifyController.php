@@ -170,6 +170,8 @@ class NotifyController extends Base
                         throw new \Exception('订单不存在');
                     }
                     $order->status = 1;
+                    $order->pay_time = Carbon::now();
+                    $order->pay_type = $paytype;
                     $order->save();
                     #增加累计消费
                     #消费进行升级

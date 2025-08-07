@@ -48,6 +48,11 @@ use plugin\admin\app\model\Base;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\DoctorOrderRecordMedicine> $medicine
  * @property-read \app\admin\model\DoctorOrder|null $order
  * @property-read \app\admin\model\User|null $user
+ * @property string $sheng_yin 声音
+ * @property int $pay_type 支付方式:0=无,1=微信,2=余额
+ * @property \Illuminate\Support\Carbon|null $pay_time 支付时间
+ * @property-read mixed $pay_type_text
+ * @property-read mixed $status_text
  * @mixin \Eloquent
  */
 class DoctorOrderRecord extends Base
@@ -66,6 +71,13 @@ class DoctorOrderRecord extends Base
      */
     protected $primaryKey = 'id';
 
+    protected $casts = [
+        'pay_time' => 'datetime',
+    ];
+
+    protected $appends = ['status_text', 'pay_type_text'];
+
+
     function order()
     {
         return $this->belongsTo(DoctorOrder::class, 'order_id', 'id');
@@ -79,6 +91,20 @@ class DoctorOrderRecord extends Base
     function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    function getStatusTextAttribute($value)
+    {
+        $value = $value ? $value : $this->status;
+        $list = ['待付款', '已支付'];
+        return $list[$value]??'';
+    }
+
+    function getPayTypeTextAttribute($value)
+    {
+        $value = $value ? $value : $this->pay_type;
+        $list = ['无', '微信', '余额'];
+        return $list[$value]??'';
     }
     
     

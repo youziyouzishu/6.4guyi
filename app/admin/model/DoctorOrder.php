@@ -121,6 +121,13 @@ class DoctorOrder extends Base
         return $list[$value]??'';
     }
 
+    function getPayTypeTextAttribute($value)
+    {
+        $value = $value ? $value : $this->pay_type;
+        $list = ['无', '微信', '余额'];
+        return $list[$value]??'';
+    }
+
     function getPayStatusTextAttribute($value)
     {
         $value = $value ? $value : $this->pay_status;
@@ -128,12 +135,7 @@ class DoctorOrder extends Base
         return $list[$value]??'';
     }
 
-    function getPayTypeTextAttribute($value)
-    {
-        $value = $value ? $value : $this->pay_type;
-        $list = ['无', '微信', '余额'];
-        return $list[$value]??'';
-    }
+
 
 
 }
