@@ -98,7 +98,20 @@ class ShopController extends Base
                     $query->where('user_id', $user->id);
                 }
             ])
-            ->withCount(['comment'])->find($id);
+            ->withCount(['comment'])
+            ->find($id);
+
+        $config = config('wechat.UserMiniApp');
+        $app = new \EasyWeChat\MiniApp\Application($config);
+        $data = [
+            'scene' => strval($id),
+            'page' => 'pages/shop/detail',
+            'width' => 280,
+            'check_path' => !config('app.debug'),
+        ];
+        $response = $app->getClient()->postJson('/wxa/getwxacodeunlimit', $data);
+        $base64 = "data:image/png;base64," . base64_encode($response->getContent());
+        $goods->qrcode = $base64;
         return $this->success('成功', $goods);
     }
 

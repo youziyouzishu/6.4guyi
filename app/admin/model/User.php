@@ -39,7 +39,6 @@ use support\Db;
  * @property int|null $pid 上级
  * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $children
  * @property-read User|null $parent
- * @property int $vip_log_id vip变更日志id
  * @property-read \app\admin\model\VipLog|null $lastVipLog
  * @property-read mixed $vip_level VIP等级
  * @property string $total_consume 累计消费

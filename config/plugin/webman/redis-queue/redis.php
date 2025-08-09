@@ -5,7 +5,7 @@ return [
         'options' => [
             'auth' => null,
             'db' => 0,
-            'prefix' => '',
+            'prefix' => '0604guyi',
             'max_attempts'  => 5,
             'retry_seconds' => 5,
         ],

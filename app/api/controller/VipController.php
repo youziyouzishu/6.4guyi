@@ -96,7 +96,20 @@ class VipController extends Base
                 return $this->success('支付成功');
             }
         }
+    }
 
+
+    /**
+     * vip信息
+     * @param Request $request
+     * @return \support\Response
+     */
+    function getMyVipInfo(Request $request)
+    {
+        $user = $request->user();
+        $vipinfo = Vip::with(['benefit'])->find($user->vip_level);
+        $rows = Vip::with(['benefit'])->where('id', '>',$user->vip_level)->get();
+        return $this->success('成功',['vipinfo'=>$vipinfo,'vip_list'=>$rows]);
     }
 
 }
