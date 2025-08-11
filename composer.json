@@ -41,7 +41,8 @@
     "w7corp/easywechat": "^6.17",
     "ext-bcmath": "*",
     "endroid/qr-code": "^6.0",
-    "workerman/crontab": "^1.0"
+    "workerman/crontab": "^1.0",
+    "webman/cache": "^2.1"
   },
   "suggest": {
     "ext-event": "For better performance. "

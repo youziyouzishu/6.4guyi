@@ -192,15 +192,22 @@ class NotifyController extends Base
                     $this->updateVipLevel($order);
                     break;
                 case 'goods':
-                    $order = ShopOrder::where(['ordersn' => $out_trade_no, 'status' => 0])->first();
-                    if (!$order) {
+                    $order = ShopOrder::where(['cart_ordersn' => $out_trade_no, 'status' => 0])->get();
+                    if ($order->isEmpty()) {
                         throw new \Exception('订单不存在');
                     }
-                    $order->status = 1;
-                    $order->pay_time = Carbon::now();
-                    $order->pay_type = $paytype;
-                    $order->pay_status = 1;
-                    $order->save();
+                    foreach ($order as $item) {
+                        $item->status = 1;
+                        $item->pay_time = Carbon::now();
+                        $item->pay_type = $paytype;
+                        $item->pay_status = 1;
+                        $item->save();
+                        $item->goods->sales += $item->num;
+                        $item->sku->stock -= $item->num;
+                        $item->goods->save();
+                        $item->sku->save();
+                    }
+
                     break;
                 case 'vip':
                     $order = VipOrder::where(['ordersn' => $out_trade_no, 'status' => 0])->first();

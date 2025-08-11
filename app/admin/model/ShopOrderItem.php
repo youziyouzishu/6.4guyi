@@ -37,7 +37,7 @@ use plugin\admin\app\model\Base;
  * @property-read \app\admin\model\ShopGoodsSku|null $sku
  * @mixin \Eloquent
  */
-class ShopOrderItem extends Base
+class ShopOrderItemxxxxx extends Base
 {
     /**
      * The table associated with the model.

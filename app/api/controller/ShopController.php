@@ -16,6 +16,7 @@ use app\admin\model\ShopOrderRefund;
 use app\admin\model\User;
 use app\api\basic\Base;
 use app\api\service\Pay;
+use support\Cache;
 use support\Request;
 use support\Response;
 use Webman\RedisQueue\Client;
@@ -55,9 +56,7 @@ class ShopController extends Base
         $class_id = $request->input('class_id');
         $order = $request->input('order');#1综合  2销量 3价格升序 4价格降序
         $goods = ShopGoods::normal()
-            ->with(['items' => function ($query) {
-                $query->with(['sku', 'goods']);
-            }])
+            ->with(['sku', 'goods'])
             ->when($keyword, function ($query) use ($keyword) {
                 return $query->where('name', 'like', '%' . $keyword . '%');
             })
@@ -271,53 +270,64 @@ class ShopController extends Base
         if (empty($itemsInput)) {
             return $this->fail('请选择商品');
         }
-        $total_freight = 0;
-        $total_goods_price = 0;
 
-        $items = [];
+        $cart_ordersn = Pay::generateOrderSn() . 'T';
+        if (count($itemsInput) > 1) {
+            //购物车
+            $order = null;
+            foreach ($itemsInput as $item) {
+                $sku = ShopGoodsSku::findOrFail($item['sku_id']);
+                $num = intval($item['num']);
+                if ($sku->stock < $num) {
+                    return $this->fail("【{$sku->goods->name}】库存不足");
+                }
+                $total_freight = $sku->goods->freight;
+                $total_goods_price = bcmul($sku->goods->price, strval($num), 2);
+                $total_pay_amount = bcadd((string)$total_goods_price, $total_freight, 2);
+                $order = ShopOrder::create([
+                    'goods_id' => $sku->goods_id,
+                    'sku_id' => $sku->id,
+                    'num' => $num,
+                    'address_id' => $address_id,
+                    'user_id' => $request->user_id,
+                    'total_pay_amount' => $total_pay_amount,
+                    'total_goods_amount' => $total_goods_price,
+                    'total_freight' => $total_freight,
+                    'mark' => $mark,
+                    'cart_ordersn' => $cart_ordersn,
+                    'ordersn' => Pay::generateOrderSn(),
+                ]);
+                Client::send('job', ['id' => $order->id, 'event' => 'goods_order_expire'], 60 * 15);
+            }
 
-        $ordersn = Pay::generateOrderSn();
-
-        foreach ($itemsInput as $item) {
-            $sku = ShopGoodsSku::with('goods')->findOrFail($item['sku_id']);
-            $num = intval($item['num']);
-
+        } else {
+            //直接购买
+            $ordersn = Pay::generateOrderSn();
+            $sku_id = $itemsInput[0]['sku_id'];
+            $num = $itemsInput[0]['num'];
+            $sku = ShopGoodsSku::findOrFail($sku_id);
             if ($sku->stock < $num) {
                 return $this->fail("【{$sku->goods->name}】库存不足");
             }
-            $goods_amount = bcmul($sku->goods->price, $num, 2);
-            $freight = $sku->goods->freight;
-            $pay_amount = bcadd((string)$goods_amount, (string)$freight, 2);
-            $total_freight += $freight;
-            $total_goods_price = bcadd((string)$total_goods_price, $goods_amount, 2);
-            $items[] = [
-                'sku_id' => $sku->id,
+            $total_goods_price = bcmul($sku->goods->price, strval($num), 2);
+            $total_freight = $sku->goods->freight;
+            $total_pay_amount = bcadd($total_goods_price, strval($total_freight), 2);
+            $order = ShopOrder::create([
                 'goods_id' => $sku->goods_id,
-                'goods_name' => $sku->goods->name,
-                'price' => $sku->goods->price,
+                'sku_id' => $sku->id,
                 'num' => $num,
-                'goods_amount' => $goods_amount,
-                'pay_amount' => $pay_amount,
-                'freight' => $freight,
-            ];
+                'address_id' => $address_id,
+                'user_id' => $request->user_id,
+                'ordersn' => $ordersn,
+                'total_pay_amount' => $total_pay_amount,
+                'total_goods_amount' => $total_goods_price,
+                'total_freight' => $total_freight,
+                'mark' => $mark,
+                'cart_ordersn' => $cart_ordersn,
+            ]);
+            Client::send('job', ['id' => $order->id, 'event' => 'goods_order_expire'], 60 * 15);
         }
-
-
-        $total_price = bcadd((string)$total_goods_price, (string)$total_freight, 2);
-
-        //创建订单
-        $order = ShopOrder::create([
-            'address_id' => $address_id,
-            'user_id' => $request->user_id,
-            'ordersn' => $ordersn,
-            'total_pay_amount' => $total_price,
-            'total_goods_amount' => $total_goods_price,
-            'total_freight' => $total_freight,
-            'mark' => $mark,
-        ]);
-        $order->items()->createMany($items);
-        Client::send('job', ['order_id' => $order->id, 'event' => 'goods_order_expire'], 60 * 15);
-        return $this->success('成功', $order);
+        return $this->success('成功', ['id'=>$order->id,'ordersn' => $cart_ordersn]);
     }
 
 
@@ -328,20 +338,24 @@ class ShopController extends Base
      */
     function pay(Request $request)
     {
-        $ordersn = $request->input('ordersn');
+        $cart_ordersn = $request->input('ordersn');
         $pay_type = $request->input('pay_type');#支付方式:1=微信,2=余额
 
-        $order = ShopOrder::where('ordersn', $ordersn)->first();
-        if (!$order) {
+
+        $order = ShopOrder::where('cart_ordersn', $cart_ordersn)->where('status',0)->get();
+        if ($order->isEmpty()) {
             return $this->fail('订单不存在');
         }
-        if ($order->status != 0) {
-            return $this->fail('请刷新订单列表');
+        if ($order->count() > 1) {
+            //购物车
+            $pay_amount = $order->sum('total_pay_amount');
+        } else {
+            $order = $order->first();
+            $pay_amount = $order->total_pay_amount;
         }
 
-        $pay_amount = $order->total_pay_amount;
         if ($pay_amount <= 0) {
-            $request->setParams('get', ['out_trade_no' => $ordersn, 'attach' => 'goods']);
+            $request->setParams('get', ['out_trade_no' => $cart_ordersn, 'attach' => 'goods']);
             $res = (new NotifyController())->balance($request);;
             $res = json_decode($res->rawBody());
             if ($res->code == 1) {
@@ -350,14 +364,14 @@ class ShopController extends Base
             return $this->success('支付成功');
         } else {
             if ($pay_type == 1) {
-                $result = Pay::pay($pay_type, $pay_amount, $ordersn, '购买商品', 'goods');
+                $result = Pay::pay($pay_type, $pay_amount, $cart_ordersn, '购买商品', 'goods');
                 return $this->success('唤醒微信', $result);
             } else {
                 $user = $request->user();
                 if ($user->money < $pay_amount) {
                     return $this->fail('余额不足');
                 }
-                $request->setParams('get', ['out_trade_no' => $ordersn, 'attach' => 'goods']);
+                $request->setParams('get', ['out_trade_no' => $cart_ordersn, 'attach' => 'goods']);
                 $res = (new NotifyController())->balance($request);;
                 $res = json_decode($res->rawBody());
                 if ($res->code == 1) {
@@ -367,6 +381,8 @@ class ShopController extends Base
                 return $this->success('支付成功');
             }
         }
+
+
     }
 
     /**
@@ -379,9 +395,7 @@ class ShopController extends Base
         $status = $request->input('status');#订单状态:0=全部,1=待付款,2=待发货,3=待收货,4=已完成,5=售后
 
         $orders = ShopOrder::where('user_id', $request->user_id)
-            ->with(['items' => function ($query) {
-                $query->with(['sku', 'goods']);
-            }])
+            ->with(['sku', 'goods'])
             ->when(!empty($status), function ($query) use ($status) {
                 if ($status == 1) {
                     $query->where('status', 0);
@@ -415,11 +429,9 @@ class ShopController extends Base
     {
         $id = $request->input('id');
         $order = ShopOrder::where('user_id', $request->user_id)
-            ->with(['items' => function ($query) {
-                $query->with(['sku', 'goods']);
-            },'address'])
+            ->with(['sku' ,'goods', 'address'])
             ->findOrFail($id);
-        $order->setAttribute('expire_time',$order->created_at->addMinutes(15)->timestamp);
+        $order->setAttribute('expire_time', $order->created_at->addMinutes(15)->timestamp);
         return $this->success('成功', $order);
     }
 
@@ -501,10 +513,6 @@ class ShopController extends Base
         }
         $order->status = 4;#更改为待评价状态
         $order->save();
-        $order->items->each(function (ShopOrderItem $item) {
-            $item->status = 4;#子订单更改为待评价状态
-            $item->save();
-        });
         return $this->success('成功');
     }
 
@@ -512,22 +520,20 @@ class ShopController extends Base
      * 获取待评价列表
      * @param Request $request
      */
-    function getWaitAssessList(Request $request)
-    {
-        $id = $request->input('id');
-        $order = ShopOrder::where('user_id', $request->user_id)->findOrFail($id);
-        if ($order->status != 4) {
-            return $this->fail('订单状态异常');
-        }
-        // 直接查询状态为4的订单项，并预加载关联的 goods
-        $items = $order->items()
-            ->where('status', 4)
-            ->with(['goods'])
-            ->get();
-
-        return $this->success('成功', $items);
-
-    }
+//    function getWaitAssessList(Request $request)
+//    {
+//        $id = $request->input('id');
+//        $order = ShopOrder::where('user_id', $request->user_id)->findOrFail($id);
+//        if ($order->status != 4) {
+//            return $this->fail('订单状态异常');
+//        }
+//        // 直接查询状态为4的订单项，并预加载关联的 goods
+//        $items = $order->items()
+//            ->where('status', 4)
+//            ->with(['goods'])
+//            ->get();
+//        return $this->success('成功', $items);
+//    }
 
     /**
      * 评价
@@ -540,26 +546,20 @@ class ShopController extends Base
         $content = $request->input('content');
         $images = $request->input('images');
         $anonymity = $request->input('anonymity');
-        $item = ShopOrderItem::findOrFail($id);
-        if ($item->status != 4) {
+        $order = ShopOrder::findOrFail($id);
+        if ($order->status != 4) {
             return $this->fail('订单状态异常');
         }
-        $item->status = 5;#改为评价完成
-        $item->save();
-        $item->comment()->create([
+        $order->status = 5;#改为评价完成
+        $order->save();
+        $order->comment()->create([
             'user_id' => $request->user_id,
-            'order_id' => $item->order_id,
-            'goods_id' => $item->goods_id,
+            'goods_id' => $order->goods_id,
             'score' => $score,
             'content' => $content,
             'images' => $images,
             'anonymity' => $anonymity,
         ]);
-        //如果全部子订单都评价完成 主订单也改为评价完成
-        if ($item->order->items->where('status', 4)->isEmpty()) {
-            $item->order->status = 5;#改为订单完成
-            $item->order->save();
-        }
         return $this->success('成功');
     }
 
@@ -598,27 +598,23 @@ class ShopController extends Base
         $reason = $request->input('reason');
         $images = $request->input('images');
         $content = $request->input('content');
-        $item = ShopOrderItem::findOrFail($id);
-        if (!in_array($item->order->status, [3, 4, 5])) {
+        $order = ShopOrder::findOrFail($id);
+        if (!in_array($order->status, [3, 4, 5])) {
             return $this->fail('订单状态异常');
         }
-        $item->before_status = $item->status;
-        $item->status = 1;#申请售后中
-        $item->order->before_status = $item->order->status == 6 ? $item->order->before_status : $item->order->status;
-        $item->order->status = 6;#申请售后中
-        $item->order->save();
-        $item->save();
+        $order->before_status = $order->status;
+        $order->status = 6;#申请售后中
+        $order->save();
 
-
-        ShopOrderRefund::create([
-            'order_id' => $item->order_id,
-            'item_id' => $item->id,
-            'user_id' => $request->user_id,
-            'refund_type' => $refund_type,
-            'reason' => $reason,
-            'images' => $images,
-            'content' => $content,
-        ]);
+//        ShopOrderRefund::create([
+//            'order_id' => $item->order_id,
+//            'item_id' => $item->id,
+//            'user_id' => $request->user_id,
+//            'refund_type' => $refund_type,
+//            'reason' => $reason,
+//            'images' => $images,
+//            'content' => $content,
+//        ]);
 
         return $this->success('成功');
     }

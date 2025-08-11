@@ -21,7 +21,6 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrder newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrder newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShopOrder query()
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \app\admin\model\ShopOrderItem> $items
  * @property string|null $mark 备注
  * @property \Illuminate\Support\Carbon|null $pay_time 支付时间
  * @property string|null $deleted_at 删除时间
@@ -34,6 +33,14 @@ use plugin\admin\app\model\Base;
  * @property-read \app\admin\model\UserAddress|null $address
  * @property int $status 状态:0=待付款,1=待发货,2=交易关闭,3=待收货,4=待评价,5=已完成,6=售后中
  * @property-read mixed $status_text
+ * @property int $goods_id 商品
+ * @property int $sku_id 规格
+ * @property int $num 数量
+ * @property string|null $express_name 快递公司
+ * @property string|null $express_no 快递单号
+ * @property string|null $cart_ordersn 购物车单号
+ * @property-read \app\admin\model\ShopGoods|null $goods
+ * @property-read \app\admin\model\ShopGoodsSku|null $sku
  * @mixin \Eloquent
  */
 class ShopOrder extends Base
@@ -63,7 +70,11 @@ class ShopOrder extends Base
         'total_goods_amount',
         'total_freight',
         'mark',
-        'address_id'
+        'address_id',
+        'goods_id',
+        'sku_id',
+        'num',
+        'cart_ordersn'
     ];
     protected $casts = [
         'pay_time' => 'datetime',
@@ -71,10 +82,7 @@ class ShopOrder extends Base
 
     protected $appends = ['status_text'];
 
-    function items()
-    {
-        return $this->hasMany(ShopOrderItem::class, 'order_id', 'id');
-    }
+
 
     function address()
     {
@@ -104,7 +112,22 @@ class ShopOrder extends Base
         $list = $this->getStatusList();
         return $list[$value]??'';
     }
-    
-    
-    
+
+    function sku()
+    {
+        return $this->belongsTo(ShopGoodsSku::class, 'sku_id', 'id');
+    }
+
+    function goods()
+    {
+        return $this->belongsTo(ShopGoods::class, 'goods_id', 'id');
+    }
+
+    function comment()
+    {
+        return $this->hasOne(ShopOrderItemComment::class, 'order_id', 'id');
+    }
+
+
+
 }
