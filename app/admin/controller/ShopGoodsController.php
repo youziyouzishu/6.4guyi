@@ -78,4 +78,51 @@ class ShopGoodsController extends Crud
         return view('shop-goods/update');
     }
 
+    /**
+     * 删除
+     * @param Request $request
+     * @return Response
+     * @throws BusinessException
+     */
+    public function delete(Request $request): Response
+    {
+        $ids = $this->deleteInput($request);
+        $this->doDelete($ids);
+        return $this->json(0);
+    }
+
+    /**
+     * 上架
+     * @param Request $request
+     * @return Response
+     * @throws BusinessException
+     */
+    public function up(Request $request): Response
+    {
+        $ids = $this->deleteInput($request);
+        $primary_key = $this->model->getKeyName();
+        $this->model->whereIn($primary_key, $ids)->each(function ($model) {
+            $model->status = 1;
+            $model->save();
+        });
+        return $this->json(0);
+    }
+
+    /**
+     * 下架
+     * @param Request $request
+     * @return Response
+     * @throws BusinessException
+     */
+    public function down(Request $request): Response
+    {
+        $ids = $this->deleteInput($request);
+        $primary_key = $this->model->getKeyName();
+        $this->model->whereIn($primary_key, $ids)->each(function ($model) {
+            $model->status = 0;
+            $model->save();
+        });
+        return $this->json(0);
+    }
+
 }

@@ -69,7 +69,6 @@ class DoctorScheduleController extends Crud
             $date = Carbon::parse($date);
             $start_time = $date->copy()->setTimeFromTimeString($start_time);
             $end_time = $date->copy()->setTimeFromTimeString($end_time);
-
             if ($date < Carbon::today()){
                 return $this->fail('只能排今天及以后的时间');
             }
@@ -82,11 +81,8 @@ class DoctorScheduleController extends Crud
             if ($exist) {
                 return $this->fail('不能重复日期排班');
             }
-
-
             // 主循环排班 + 休息
             $slots = [];
-
             $current = $start_time->copy();
             while (true) {
                 $slot_start = $current->copy();
@@ -95,16 +91,13 @@ class DoctorScheduleController extends Crud
                 if ($slot_end > $end_time) {
                     break;
                 }
-
                 $slots[] = [
                     'start_time' => $slot_start->toDateTimeString(),
                     'end_time' => $slot_end->toDateTimeString(),
                 ];
-
                 // 下一个 slot 开始时间：工作结束后再加上休息时间
                 $current = $slot_end->copy()->addMinutes((int)$rest_duration);
             }
-
             // 批量插入
             foreach ($slots as $slot) {
                 DoctorSchedule::create([

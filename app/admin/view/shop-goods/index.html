@@ -78,6 +78,12 @@
             <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="admin.shopgoods.delete">
                 <i class="layui-icon layui-icon-delete"></i>删除
             </button>
+            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="up" permission="admin.shopgoods.up">
+                <i class="layui-icon layui-icon-add-1"></i>批量上架
+            </button>
+            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="down" permission="admin.shopgoods.down">
+                <i class="layui-icon layui-icon-add-1"></i>批量下架
+            </button>
         </script>
 
         <!-- 表格行工具栏 -->
@@ -288,6 +294,10 @@
                         refreshTable();
                     } else if (obj.event === "batchRemove") {
                         batchRemove(obj);
+                    } else if (obj.event === "up") {
+                        up(obj);
+                    } else if (obj.event === "down") {
+                        down(obj);
                     }
                 });
 
@@ -383,6 +393,24 @@
                     doRemove(checkIds.split(","));
                 }
 
+                let up = function(obj) {
+                    let checkIds = common.checkField(obj, PRIMARY_KEY);
+                    if (checkIds === "") {
+                        layui.popup.warning("未选中数据");
+                        return false;
+                    }
+                    doUp(checkIds.split(","));
+                }
+
+                let down = function(obj) {
+                    let checkIds = common.checkField(obj, PRIMARY_KEY);
+                    if (checkIds === "") {
+                        layui.popup.warning("未选中数据");
+                        return false;
+                    }
+                    doDown(checkIds.split(","));
+                }
+
                 // 执行删除
                 let doRemove = function (ids) {
                     let data = {};
@@ -395,6 +423,56 @@
                         let loading = layer.load();
                         $.ajax({
                             url: DELETE_API,
+                            data: data,
+                            dataType: "json",
+                            type: "post",
+                            success: function(res) {
+                                layer.close(loading);
+                                if (res.code) {
+                                    return layui.popup.failure(res.msg);
+                                }
+                                return layui.popup.success("操作成功", refreshTable);
+                            }
+                        })
+                    });
+                }
+
+                let doUp = function (ids) {
+                    let data = {};
+                    data[PRIMARY_KEY] = ids;
+                    layer.confirm("确定上架?", {
+                        icon: 3,
+                        title: "提示"
+                    }, function(index) {
+                        layer.close(index);
+                        let loading = layer.load();
+                        $.ajax({
+                            url: '/admin/shop-goods/up',
+                            data: data,
+                            dataType: "json",
+                            type: "post",
+                            success: function(res) {
+                                layer.close(loading);
+                                if (res.code) {
+                                    return layui.popup.failure(res.msg);
+                                }
+                                return layui.popup.success("操作成功", refreshTable);
+                            }
+                        })
+                    });
+                }
+
+                let doDown = function (ids) {
+                    let data = {};
+                    data[PRIMARY_KEY] = ids;
+                    layer.confirm("确定下架?", {
+                        icon: 3,
+                        title: "提示"
+                    }, function(index) {
+                        layer.close(index);
+                        let loading = layer.load();
+                        $.ajax({
+                            url: '/admin/shop-goods/down',
                             data: data,
                             dataType: "json",
                             type: "post",

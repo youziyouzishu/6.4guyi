@@ -2,6 +2,7 @@
 
 namespace app\admin\model;
 
+use Illuminate\Support\Carbon;
 use plugin\admin\app\model\Base;
 
 /**
@@ -15,10 +16,10 @@ use plugin\admin\app\model\Base;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorSchedule newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorSchedule newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorSchedule query()
- * @property \Illuminate\Support\Carbon $date 日期
- * @property \Illuminate\Support\Carbon $start_time 上班时间
- * @property \Illuminate\Support\Carbon $end_time 结束时间
- * @property-read \app\admin\model\Doctor|null $doctor
+ * @property Carbon $date 日期
+ * @property Carbon $start_time 上班时间
+ * @property Carbon $end_time 结束时间
+ * @property-read Doctor|null $doctor
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorSchedule normal()
  * @mixin \Eloquent
  */
